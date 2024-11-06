@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:myapp/src/common_widgets/buttons.dart';
 import 'package:myapp/src/features/welcome/welcome_screen.dart';
-import '../auth/login/signin_method.dart';
+import 'package:myapp/src/features/auth/login/signin_method.dart';
 
 class EnterScreen extends StatelessWidget {
   const EnterScreen({super.key});
-
+  
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
+    return Scaffold(
         body: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
+          child: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -31,66 +30,46 @@ class EnterScreen extends StatelessWidget {
                 const Text(
                   'Stanford Byers Center for Biodesign',
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: 12,
                     color: Colors.black54,
                   ),
                   textAlign: TextAlign.center,
                 ),
+
                 const SizedBox(height: 50),
 
                 // New User Button
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
+
+                RoundButton(
+                  label: 'I am a New User',
+                  onPressed: () {
                       Navigator.push(
                           context,
                           MaterialPageRoute(
                               builder: (context) => const WelcomeScreen()));
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF4B5BA6),
-                      padding: const EdgeInsets.symmetric(vertical: 15),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                    ),
-                    child: const Text(
-                      'I am a New User',
-                      style: TextStyle(fontSize: 18),
-                    ),
-                  ),
+                  },
+                  color: const Color(0xFF4B5BA6),
                 ),
+                
+
                 const SizedBox(height: 20),
 
-                // Existing User Button
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
+                // Existing user button
+                
+                RoundButton(
+                  label: 'I am an Existing User', 
+                  onPressed: () {
+                    Navigator.push(
                           context,
                           MaterialPageRoute(
                               builder: (context) => const SignInMethod()));
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF666F89),
-                      padding: const EdgeInsets.symmetric(vertical: 15),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                    ),
-                    child: const Text(
-                      'I am an Existing User',
-                      style: TextStyle(fontSize: 18),
-                    ),
-                  ),
-                ),
+                  },
+                  color: const Color(0xFF666F89),
+                )
               ],
             ),
           ),
         ),
-      ),
     );
   }
 }

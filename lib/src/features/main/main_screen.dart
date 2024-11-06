@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:myapp/src/features/contacts/contacts_screen.dart';
 import 'package:myapp/src/features/profile/profile_screens.dart';
 import 'package:myapp/src/features/tasks/tasks_screen.dart';
-import '../home/home.dart';
+import 'package:myapp/src/features/main/home/home.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -17,14 +17,16 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       bottomNavigationBar: NavigationBar(
+        backgroundColor: Colors.white,
         onDestinationSelected: (int index) {
           setState(() {
             currentPageIndex = index;
           });
         },
-        indicatorColor: const Color.fromARGB(255, 131, 7, 255),
         selectedIndex: currentPageIndex,
+        indicatorColor: Colors.white,
         destinations: const <Widget>[
           NavigationDestination(
             selectedIcon: Icon(Icons.home),
@@ -32,15 +34,18 @@ class _MainScreenState extends State<MainScreen> {
             label: 'Home',
           ),
           NavigationDestination(
-            icon: Icon(Icons.check_box),
+            selectedIcon: Icon(Icons.check_box),
+            icon: Icon(Icons.check_box_outlined),
             label: 'Tasks',
           ),
           NavigationDestination(
-            icon: Icon(Icons.contacts),
+            selectedIcon: Icon(Icons.contacts),
+            icon: Icon(Icons.contacts_outlined),
             label: 'Contacts',
           ),
           NavigationDestination(
-            icon: Icon(Icons.person_2_rounded),
+            selectedIcon: Icon(Icons.person_2_rounded),
+            icon: Icon(Icons.person_2_outlined),
             label: 'Profile',
           ),
         ],

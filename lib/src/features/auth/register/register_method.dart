@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:myapp/src/features/auth/login/signin_screen.dart';
+import 'package:myapp/src/features/auth/register/register_screen.dart';
 import 'package:myapp/src/features/auth/widgets/auth_method.dart';
 // import 'package:google_sign_in/google_sign_in.dart';
 // import 'package:firebase_auth/firebase_auth.dart';
 
-class SignInMethod extends StatefulWidget {
-  const SignInMethod({super.key});
+class RegisterMethod extends StatefulWidget {
+  const RegisterMethod({super.key});
 
   @override
-  State<SignInMethod> createState() => _SignInMethodState();
+  State<RegisterMethod> createState() => _RegisterMethodState();
 }
 
-class _SignInMethodState extends State<SignInMethod> {
+class _RegisterMethodState extends State<RegisterMethod> {
   // final FirebaseAuth _auth = FirebaseAuth.instance;
   // final GoogleSignIn _googleSignIn = GoogleSignIn();
 
@@ -37,9 +37,9 @@ class _SignInMethodState extends State<SignInMethod> {
     return AuthMethodLayout(
         handleEmailAuth: () {
           Navigator.push(context,
-              MaterialPageRoute(builder: (context) => const SignInScreen()));
+              MaterialPageRoute(builder: (context) => const RegisterScreen()));
         },
         handleGoogleSignIn: _handleGoogleSignIn,
-        auth: "Sign In");
+        auth: "Sign Up");
   }
 }

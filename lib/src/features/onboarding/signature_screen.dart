@@ -1,136 +1,92 @@
 import 'package:flutter/material.dart';
+import 'package:myapp/src/common_widgets/buttons.dart';
+import 'package:myapp/src/common_widgets/form_layout.dart';
+import 'package:myapp/src/features/main/main_screen.dart';
 import 'package:signature/signature.dart';
 
 class SignatureScreen extends StatefulWidget {
   const SignatureScreen({super.key});
 
   @override
-  _SignatureScreenState createState() => _SignatureScreenState();
+  State<SignatureScreen> createState() => _SignaturePageState();
 }
 
-class _SignatureScreenState extends State<SignatureScreen> {
-  final SignatureController _controller = SignatureController(
-    penStrokeWidth: 5,
-    penColor: Colors.black,
-    exportBackgroundColor: Colors.white,
-  );
-  
-  String firstName = '';
-  String lastName = '';
-  bool isSigned = false;
+class _SignaturePageState extends State<SignatureScreen> {
+  final SignatureController _controller = SignatureController();
+  final TextEditingController _firstNameController = TextEditingController();
+  final TextEditingController _lastNameController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _controller.addListener(() {
+      setState(() {}); // Trigger rebuild to update button state
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.of(context).pop(),
+    return FormLayout(
+      items: [
+        const Text(
+          'Signature',
+          style: TextStyle(fontSize: 25),
         ),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Signature',
-              style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              'Please sign the consent form',
-              style: TextStyle(fontSize: 18),
-            ),
-            const SizedBox(height: 20),
-            TextField(
-              decoration: const InputDecoration(
-                labelText: 'First Name',
-                border: OutlineInputBorder(),
-              ),
-              onChanged: (value) => setState(() => firstName = value),
-            ),
-            const SizedBox(height: 10),
-            TextField(
-              decoration: const InputDecoration(
-                labelText: 'Last Name',
-                border: OutlineInputBorder(),
-              ),
-              onChanged: (value) => setState(() => lastName = value),
-            ),
-            const SizedBox(height: 20),
-            const Text('Signature', style: TextStyle(fontSize: 18)),
-            const SizedBox(height: 5),
-            Container(
-              height: 200,
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.blue, width: 2),
-              ),
-              child: Signature(
-                controller: _controller,
-                backgroundColor: Colors.white,
-              ),
-            ),
-            const SizedBox(height: 20),
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: isSigned && firstName.isNotEmpty && lastName.isNotEmpty
-                      ? () {
-                          // TODO: Generate signed PDF from signature
-                          // Navigate to next screen
-                          Navigator.of(context).pushNamed('/register_method');
-                        }
-                      : null,
-                    style: ElevatedButton.styleFrom(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 15),
-                    ),
-                    child: const Text('Next', style: TextStyle(fontSize: 16)),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      setState(() {
-                        _controller.clear();
-                        firstName = '';
-                        lastName = '';
-                        isSigned = false;
-                      });
-                    },
-                    style: ElevatedButton.styleFrom(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 15),
-                      backgroundColor: Colors.grey,
-                    ),
-                    child: const Text('Clear', style: TextStyle(fontSize: 16)),
-                  ),
-                ),
-              ],
-            ),
-          ],
+        const SizedBox(height: 10),
+        const Text(
+          'Please sign below to complete your registration.',
+          style: TextStyle(fontSize: 18),
         ),
-      ),
+        const SizedBox(height: 10),
+        ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 400),
+          child: Container(
+            height: 200,
+            decoration: BoxDecoration(
+              border:
+                  Border.all(color: Theme.of(context).primaryColor, width: 2),
+            ),
+            child: Signature(
+              controller: _controller,
+              backgroundColor: Colors.white,
+            ),
+          ),
+        ),
+        const SizedBox(height: 10),
+        Center(
+          child: RoundButton(
+            label: "Register",
+            onPressed: _controller.isNotEmpty
+                ? () {
+                    // final signaturePng = _controller.toPngBytes();
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const MainScreen()));
+                  }
+                : null,
+            color: const Color(0xFF4B5BA6),
+          ),
+        ),
+        const SizedBox(height: 10),
+        Center(
+            child: RoundButton(
+                label: 'Clear',
+                onPressed: () {
+                  _controller.clear();
+                  _firstNameController.clear();
+                  _lastNameController.clear();
+                },
+                color: const Color(0xFF4B5BA6))),
+      ],
     );
   }
 
   @override
   void dispose() {
     _controller.dispose();
+    _firstNameController.dispose();
+    _lastNameController.dispose();
     super.dispose();
   }
 }
-

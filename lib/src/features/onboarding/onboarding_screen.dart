@@ -1,13 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:myapp/src/features/onboarding/widgets/pager_screen.dart';
 import 'package:myapp/src/features/onboarding/review_screen.dart';
-
-class OnboardingPage {
-  final String? image;
-  final String? title;
-  final String? description;
-
-  OnboardingPage({this.image, this.title, this.description});
-}
+import 'package:myapp/src/features/onboarding/onboarding_viewmodel.dart';
 
 final List<OnboardingPage> pages = [
   OnboardingPage(
@@ -36,7 +30,7 @@ class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
 
   @override
-  _OnboardingScreenState createState() => _OnboardingScreenState();
+  State<OnboardingScreen> createState() => _OnboardingScreenState();
 }
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
@@ -49,11 +43,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
+        leading: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () {
             Navigator.pop(context);
-          },
+            }
+          )
         ),
       ),
       body: Column(
@@ -145,43 +142,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             ? Theme.of(context).primaryColor
             : Colors.grey,
       ),
-    );
-  }
-}
-
-class PagerScreen extends StatelessWidget {
-  final OnboardingPage onboardingPage;
-
-  const PagerScreen({super.key, required this.onboardingPage});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        if (onboardingPage.image != null)
-          Image.asset(
-            onboardingPage.image!,
-            height: MediaQuery.of(context).size.height * 0.4,
-          ),
-        const SizedBox(height: 32),
-        if (onboardingPage.title != null)
-          Text(
-            onboardingPage.title!,
-            style: Theme.of(context).textTheme.headlineSmall,
-            textAlign: TextAlign.center,
-          ),
-        const SizedBox(height: 16),
-        if (onboardingPage.description != null)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 40.0),
-            child: Text(
-              onboardingPage.description!,
-              style: Theme.of(context).textTheme.bodyMedium,
-              textAlign: TextAlign.center,
-            ),
-          ),
-      ],
     );
   }
 }
