@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:myapp/src/common_widgets/buttons.dart';
 import 'package:myapp/src/common_widgets/form_layout.dart';
 import 'package:myapp/src/common_widgets/textfields.dart';
@@ -18,6 +19,48 @@ class _LoginScreenState extends State<SignInScreen> {
   bool _obscurePassword = true;
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  bool _isLoading = false;
+
+  Future<void> _signIn() async {
+    if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isLoading = true;
+      });
+      
+      try {
+        await FirebaseAuth.instance.signInWithEmailAndPassword(
+          email: _emailController.text,
+          password: _passwordController.text,
+        );
+
+        if (!mounted) return; 
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const MainScreen()),
+        );
+      } on FirebaseAuthException catch (e) {
+        String errorMessage;
+        if (e.code == 'user-not-found') {
+          errorMessage = 'No user found for that email.';
+        } else if (e.code == 'wrong-password') {
+          errorMessage = 'Wrong password provided for that user.';
+        } else {
+          errorMessage = 'An error occurred. Please try again.';
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(errorMessage)),
+        );
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('An error occurred. Please try again.')),
+        );
+      } finally {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
 
   @override
   void dispose() {
@@ -41,7 +84,6 @@ class _LoginScreenState extends State<SignInScreen> {
       const SizedBox(height: 12),
 
       // Title and Subtitle
-
       const Text(
         'Sign In to CardinalKit',
         style: TextStyle(
@@ -169,18 +211,13 @@ class _LoginScreenState extends State<SignInScreen> {
             SizedBox(
                 width: 400,
                 child: Center(
-                  child: RoundButton(
-                    label: 'Sign In',
-                    onPressed: () {
-                      if (_formKey.currentState!.validate()) {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => const MainScreen()));
-                      }
-                    },
-                    color: const Color(0xFF4B5BA6),
-                  ),
+                  child: _isLoading
+                      ? const CircularProgressIndicator()
+                      : RoundButton(
+                          label: 'Sign In',
+                          onPressed: _signIn,
+                          color: const Color(0xFF4B5BA6),
+                        ),
                 )),
 
             const SizedBox(height: 24),

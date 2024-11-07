@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:myapp/src/common_widgets/buttons.dart';
 import 'package:myapp/src/common_widgets/form_layout.dart';
 import 'package:myapp/src/common_widgets/textfields.dart';
@@ -20,6 +22,59 @@ class _RegistrationScreenState extends State<RegisterScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  bool _isLoading = false;
+
+  Future<void> _register() async {
+    if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isLoading = true;
+      });
+
+      try {
+        UserCredential userCredential =
+            await FirebaseAuth.instance.createUserWithEmailAndPassword(
+          email: _emailController.text,
+          password: _passwordController.text,
+        );
+
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(userCredential.user!.uid)
+            .set({
+          'firstName': _firstNameController.text,
+          'lastName': _lastNameController.text,
+          'email': _emailController.text,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+
+        if (!mounted) return; 
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const OnboardingScreen()),
+        );
+      } on FirebaseAuthException catch (e) {
+        String errorMessage;
+        if (e.code == 'weak-password') {
+          errorMessage = 'The password provided is too weak.';
+        } else if (e.code == 'email-already-in-use') {
+          errorMessage = 'An account already exists for that email.';
+        } else {
+          errorMessage = 'An error occurred. Please try again.';
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(errorMessage)),
+        );
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('An error occurred. Please try again.')),
+        );
+      } finally {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
 
   bool _isPasswordValid(String password) {
     if (password.length < 8) return false;
@@ -135,8 +190,8 @@ class _RegistrationScreenState extends State<RegisterScreen> {
 
               // Password Field
               TextInputField(
-                textController: _passwordController, 
-                label: 'Password', 
+                textController: _passwordController,
+                label: 'Password',
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter a password';
@@ -148,17 +203,14 @@ class _RegistrationScreenState extends State<RegisterScreen> {
                 },
                 obsecurePassword: _obscurePassword,
                 suffixIcon: IconButton(
-                    icon: Icon(
-                      _obscurePassword
-                          ? Icons.visibility_off
-                          : Icons.visibility,
-                      color: Colors.grey,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        _obscurePassword = !_obscurePassword;
-                      }
-                    );
+                  icon: Icon(
+                    _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                    color: Colors.grey,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _obscurePassword = !_obscurePassword;
+                    });
                   },
                 ),
               ),
@@ -167,19 +219,19 @@ class _RegistrationScreenState extends State<RegisterScreen> {
 
               // Confirm Password Field
               TextInputField(
-                textController: _confirmPasswordController, 
-                label: 'Confirm Password', 
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please confirm your password';
-                  }
-                  if (value != _passwordController.text) {
-                    return 'Passwords do not match';
-                  }
-                  return null;
-                },
-                obsecurePassword: _obscureConfirmPassword,
-                suffixIcon: IconButton(
+                  textController: _confirmPasswordController,
+                  label: 'Confirm Password',
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please confirm your password';
+                    }
+                    if (value != _passwordController.text) {
+                      return 'Passwords do not match';
+                    }
+                    return null;
+                  },
+                  obsecurePassword: _obscureConfirmPassword,
+                  suffixIcon: IconButton(
                     icon: Icon(
                       _obscureConfirmPassword
                           ? Icons.visibility_off
@@ -191,8 +243,7 @@ class _RegistrationScreenState extends State<RegisterScreen> {
                         _obscureConfirmPassword = !_obscureConfirmPassword;
                       });
                     },
-                  )
-              ),
+                  )),
 
               const SizedBox(height: 32),
 
@@ -202,10 +253,7 @@ class _RegistrationScreenState extends State<RegisterScreen> {
                       label: "Next",
                       onPressed: () {
                         if (_formKey.currentState!.validate()) {
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => const OnboardingScreen()));
+                          _register();
                         }
                       },
                       color: const Color(0xFF4B5BA6))),
