@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:myapp/src/common_widgets/buttons.dart';
+import 'package:myapp/src/common_widgets/button/buttons.dart';
 import 'package:myapp/src/common_widgets/padding_layout.dart';
-import 'package:myapp/src/features/auth/register/register_method.dart';
+import 'package:myapp/src/features/welcome/onboarding_screen.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return PaddingLayout(widgets: [
+    return PaddingLayout(
+      backArrow: true,
+      widgets: [
       // Welcome Text
       const Text(
-        'Welcome to CardinalKit',
+        'Welcome to WMP Final',
         style: TextStyle(
           fontSize: 26,
           fontWeight: FontWeight.bold,
@@ -42,7 +44,7 @@ class WelcomeScreen extends StatelessWidget {
             Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (context) => const RegisterMethod()));
+                    builder: (context) => const OnboardingScreen()));
           },
           color: const Color(0xFF4B5BA6))
     ], backgroundColor: Colors.white);

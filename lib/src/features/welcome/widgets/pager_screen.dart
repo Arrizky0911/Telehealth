@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:myapp/src/features/onboarding/onboarding_viewmodel.dart';
+import 'package:myapp/src/features/welcome//onboarding_screen.dart';
 
 class PagerScreen extends StatelessWidget {
   final OnboardingPage onboardingPage;

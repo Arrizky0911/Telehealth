@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:myapp/src/common_widgets/buttons.dart';
+import 'package:myapp/src/common_widgets/button/buttons.dart';
+import 'package:myapp/src/common_widgets/form/emailfield.dart';
+import 'package:myapp/src/common_widgets/form/passwordfield.dart';
 import 'package:myapp/src/common_widgets/form_layout.dart';
-import 'package:myapp/src/common_widgets/textfields.dart';
 import 'package:myapp/src/features/auth/login/forgot_password.dart';
 import 'package:myapp/src/features/auth/register/register_screen.dart';
 import 'package:myapp/src/features/main/main_screen.dart';
@@ -16,7 +17,6 @@ class SignInScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<SignInScreen> {
   final _formKey = GlobalKey<FormState>();
-  bool _obscurePassword = true;
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
@@ -113,48 +113,10 @@ class _LoginScreenState extends State<SignInScreen> {
           child:
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             // Email Field
-            TextInputField(
-              textController: _emailController,
-              label: 'Email',
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter your email';
-                }
-                if (!value.contains('@')) {
-                  return 'Please enter a valid email';
-                }
-                return null;
-              },
-            ),
-
+            EmailField(emailController: _emailController),
             const SizedBox(height: 16),
-
             // Password Field
-            TextInputField(
-              textController: _passwordController,
-              label: 'Password',
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter your password';
-                }
-                if (value.length < 8) {
-                  return 'Password must be at least 8 characters';
-                }
-                return null;
-              },
-              obsecurePassword: _obscurePassword,
-              suffixIcon: IconButton(
-                icon: Icon(
-                  _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                  color: Colors.grey,
-                ),
-                onPressed: () {
-                  setState(() {
-                    _obscurePassword = !_obscurePassword;
-                  });
-                },
-              ),
-            ),
+            PasswordField(passwordController: _passwordController, label: "Password", confirmPassword: false,),
 
             const SizedBox(height: 16),
 

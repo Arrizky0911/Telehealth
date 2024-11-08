@@ -3,11 +3,12 @@ import 'package:flutter/material.dart';
 class PaddingLayout extends StatelessWidget {
   final List<Widget> widgets;
   final Color backgroundColor;
+  final bool backArrow;
 
   const PaddingLayout({
     super.key,
     required this.widgets,
-    required this.backgroundColor
+    required this.backgroundColor, required this.backArrow
   });
 
   @override
@@ -21,14 +22,14 @@ class PaddingLayout extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Back Button
-              IconButton(
-                icon: const Icon(Icons.arrow_back),
-                onPressed: () => Navigator.pop(context),
-                padding: const EdgeInsets.all(0),
-                alignment: Alignment.bottomLeft,
+              SizedBox(
+                  child: backArrow ? IconButton(
+                    icon: const Icon(Icons.arrow_back),
+                    onPressed: () => Navigator.pop(context),
+                    padding: const EdgeInsets.all(0),
+                    alignment: Alignment.bottomLeft,
+                  ) : null,
               ),
-
-              const SizedBox(height: 20),
 
               // Centered Image
               Expanded(

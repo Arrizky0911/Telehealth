@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:myapp/src/common_widgets/buttons.dart';
+import 'package:myapp/src/common_widgets/button/buttons.dart';
+import 'package:myapp/src/common_widgets/form/emailfield.dart';
 import 'package:myapp/src/common_widgets/form_layout.dart';
-import 'package:myapp/src/common_widgets/textfields.dart';
+import 'package:myapp/src/features/auth/login/signin_method.dart'; // Import the SignInMethod screen
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -52,6 +53,12 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     }
   }
 
+  void _navigateToSignIn() {
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (context) => const SignInMethod()),
+    );
+  }
+
   @override
   void dispose() {
     _emailController.dispose();
@@ -60,11 +67,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Forgot Password'),
-      ),
-      body: FormLayout(items: [
+    return FormLayout(
+      items: [
         Form(
           key: _formKey,
           child: Column(
@@ -74,9 +78,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               Text(
                 'Forgot Password',
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      color: Theme.of(context).primaryColor,
-                      fontWeight: FontWeight.w600,
-                    ),
+                  color: Theme.of(context).primaryColor,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               const SizedBox(height: 10),
               Text(
@@ -87,19 +91,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               ),
               const SizedBox(height: 20),
               if (!_emailSent) ...[
-                TextInputField(
-                  textController: _emailController,
-                  label: 'Email',
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your email';
-                    }
-                    if (!value.contains('@')) {
-                      return 'Please enter a valid email';
-                    }
-                    return null;
-                  },
-                ),
+                EmailField(emailController: _emailController),
                 const SizedBox(height: 20),
                 Align(
                   alignment: Alignment.centerRight,
@@ -107,29 +99,36 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     onPressed: _isLoading ? null : _resetPassword,
                     child: _isLoading
                         ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                            ),
-                          )
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                      ),
+                    )
                         : const Text('Submit'),
                   ),
                 ),
               ] else ...[
                 RoundButton(
-                    label: 'Resend Email',
-                    onPressed: () {
-                      setState(() {
-                        _emailSent = false;
-                      });
-                    },
-                    color: Theme.of(context).primaryColor)
+                  label: 'Resend Email',
+                  onPressed: () {
+                    setState(() {
+                      _emailSent = false;
+                    });
+                  },
+                  color: Theme.of(context).primaryColor,
+                ),
+                const SizedBox(height: 20),
+                RoundButton(
+                  label: 'I\'ve Reset My Password',
+                  onPressed: _navigateToSignIn,
+                  color: Theme.of(context).primaryColor,
+                ),
               ],
             ],
           ),
         ),
-      ]),
+      ],
     );
   }
 }

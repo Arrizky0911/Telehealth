@@ -1,11 +1,65 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:myapp/src/features/welcome/enter_screen.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  String firstName = '';
+  String lastName = '';
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      try {
+        final userData = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .get();
+        setState(() {
+          firstName = userData.data()?['firstName'] ?? '';
+          lastName = userData.data()?['lastName'] ?? '';
+          isLoading = false;
+        });
+      } catch (e) {
+        print('Error loading user data: $e');
+        setState(() {
+          isLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _signOut() async {
+    try {
+      await FirebaseAuth.instance.signOut();
+      // Navigate to login screen or initial screen after sign out
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const EnterScreen()));
+    } catch (e) {
+      print('Error signing out: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to sign out. Please try again.')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF5F5F5),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
@@ -37,48 +91,52 @@ class ProfileScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 32),
-                const Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'User ID',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
+                if (isLoading)
+                  const Center(child: CircularProgressIndicator())
+                else
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Name',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      'sFr9fbIsfHOIld6oQon8HyFwMbF3',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.black87,
+                      const SizedBox(height: 4),
+                      Text(
+                        '$firstName $lastName',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          color: Colors.black87,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
+                    ],
+                  ),
                 const SizedBox(height: 32),
-                _MenuButton(
-                  title: 'Upload Health Data',
+                _MenuItem(
+                  icon: Icons.person_outline,
+                  title: 'Personal Information',
                   onTap: () {},
                 ),
-                _MenuButton(
-                  title: 'Report an Issue',
+                const SizedBox(height: 12),
+                _MenuItem(
+                  icon: Icons.medical_services_outlined,
+                  title: 'Medical History',
                   onTap: () {},
                 ),
-                _MenuButton(
-                  title: 'Support',
-                  onTap: () {},
-                ),
-                _MenuButton(
-                  title: 'View Consent Form',
+                const SizedBox(height: 12),
+                _MenuItem(
+                  icon: Icons.translate_outlined,
+                  title: 'Languages',
                   onTap: () {},
                 ),
                 const SizedBox(height: 32),
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () {},
+                    onPressed: _signOut,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF786083),
                       foregroundColor: Colors.white,
@@ -105,40 +163,69 @@ class ProfileScreen extends StatelessWidget {
   }
 }
 
-class _MenuButton extends StatelessWidget {
+class _MenuItem extends StatelessWidget {
+  final IconData icon;
   final String title;
   final VoidCallback onTap;
 
-  const _MenuButton({
+  const _MenuItem({
+    required this.icon,
     required this.title,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 2),
-      width: double.infinity,
-      child: TextButton(
-        onPressed: onTap,
-        style: TextButton.styleFrom(
-          backgroundColor: const Color(0xFFE8EAF6),
-          padding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 20,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Ink(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 10,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.zero,
-          ),
-        ),
-        child: Align(
-          alignment: Alignment.centerLeft,
-          child: Text(
-            title,
-            style: const TextStyle(
-              fontSize: 16,
-              color: Colors.black87,
-              fontWeight: FontWeight.w500,
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[200],
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    icon,
+                    size: 24,
+                    color: Colors.black54,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.black87,
+                    ),
+                  ),
+                ),
+                const Icon(
+                  Icons.chevron_right,
+                  color: Colors.black54,
+                ),
+              ],
             ),
           ),
         ),

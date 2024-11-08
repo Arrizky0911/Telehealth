@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:myapp/src/common_widgets/buttons.dart';
+import 'package:myapp/src/common_widgets/button/buttons.dart';
 import 'package:myapp/src/common_widgets/padding_layout.dart';
 // import 'package:google_sign_in/google_sign_in.dart';
 // import 'package:firebase_auth/firebase_auth.dart';
@@ -8,17 +8,20 @@ class AuthMethodLayout extends StatelessWidget {
   final VoidCallback handleEmailAuth;
   final VoidCallback handleGoogleSignIn;
   final String auth;
+  final bool backArrow;
+
   const AuthMethodLayout({
     super.key,
     required this.handleEmailAuth,
     required this.handleGoogleSignIn,
-    required this.auth
+    required this.auth, required this.backArrow
     }
   );
 
   @override
   Widget build(BuildContext context) {
     return PaddingLayout(
+      backArrow: backArrow,
       backgroundColor: Colors.white,
       widgets: [
         Image.asset(
@@ -27,7 +30,7 @@ class AuthMethodLayout extends StatelessWidget {
           height: MediaQuery.of(context).size.height * 0.3,
         ),
         Text(
-          auth == "Sign In" ? "Sign In to CardinalKit" : "Create a new account",
+          auth == "Sign In" ? "Sign In to WMP Final" : "Create a new account",
           style: TextStyle(
             fontSize: 26,
             fontWeight: FontWeight.w600,

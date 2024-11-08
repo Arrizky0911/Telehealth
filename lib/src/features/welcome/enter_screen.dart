@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:myapp/src/common_widgets/buttons.dart';
+import 'package:myapp/src/common_widgets/button/buttons.dart';
 import 'package:myapp/src/features/welcome/welcome_screen.dart';
 import 'package:myapp/src/features/auth/login/signin_method.dart';
 
@@ -18,7 +18,7 @@ class EnterScreen extends StatelessWidget {
 
                 // Title
                 const Text(
-                  'CardinalKit',
+                  'WMP Final',
                   style: TextStyle(
                     fontSize: 32,
                     fontWeight: FontWeight.bold,
@@ -28,7 +28,7 @@ class EnterScreen extends StatelessWidget {
 
                 // Subtitle
                 const Text(
-                  'Stanford Byers Center for Biodesign',
+                  'Wireless and Mobile Programming Final Project',
                   style: TextStyle(
                     fontSize: 12,
                     color: Colors.black54,

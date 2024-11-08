@@ -6,12 +6,14 @@ class TextInputField extends StatelessWidget {
   final String? Function(String?) validator;
   final bool obsecurePassword;
   final IconButton? suffixIcon;
+  final TextInputType? keyboardType;
 
   const TextInputField(
       {super.key,
       required this.textController,
       required this.label,
       required this.validator,
+      required this.keyboardType,
       this.obsecurePassword = false,
       this.suffixIcon});
 
@@ -20,7 +22,7 @@ class TextInputField extends StatelessWidget {
     return TextFormField(
       controller: textController,
       obscureText: obsecurePassword,
-      keyboardType: label == "Email" ? TextInputType.emailAddress : null,
+      keyboardType: keyboardType,
       decoration: InputDecoration(
           labelText: label,
           border: OutlineInputBorder(

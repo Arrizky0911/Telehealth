@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:myapp/src/common_widgets/buttons.dart';
+import 'package:myapp/src/common_widgets/button/buttons.dart';
+import 'package:myapp/src/common_widgets/form/emailfield.dart';
+import 'package:myapp/src/common_widgets/form/passwordfield.dart';
 import 'package:myapp/src/common_widgets/form_layout.dart';
-import 'package:myapp/src/common_widgets/textfields.dart';
-import 'package:myapp/src/features/onboarding/onboarding_screen.dart';
+import 'package:myapp/src/common_widgets/form/textfields.dart';
+import 'package:myapp/src/features/auth/login/signin_screen.dart';
+import 'package:myapp/src/features/onboarding/review_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -15,8 +18,6 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegistrationScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
-  bool _obscurePassword = true;
-  bool _obscureConfirmPassword = true;
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
   final _emailController = TextEditingController();
@@ -50,7 +51,7 @@ class _RegistrationScreenState extends State<RegisterScreen> {
         if (!mounted) return; 
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const OnboardingScreen()),
+          MaterialPageRoute(builder: (context) => const ReviewScreen()),
         );
       } on FirebaseAuthException catch (e) {
         String errorMessage;
@@ -76,14 +77,7 @@ class _RegistrationScreenState extends State<RegisterScreen> {
     }
   }
 
-  bool _isPasswordValid(String password) {
-    if (password.length < 8) return false;
-    if (!password.contains(RegExp(r'[A-Z]'))) return false;
-    if (!password.contains(RegExp(r'[a-z]'))) return false;
-    if (!password.contains(RegExp(r'[0-9]'))) return false;
-    if (!password.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'))) return false;
-    return true;
-  }
+
 
   @override
   void dispose() {
@@ -104,7 +98,7 @@ class _RegistrationScreenState extends State<RegisterScreen> {
           child: Column(
             children: [
               Text(
-                'CardinalKit',
+                'WMP Final',
                 style: TextStyle(
                   fontSize: 32,
                   fontWeight: FontWeight.bold,
@@ -113,7 +107,7 @@ class _RegistrationScreenState extends State<RegisterScreen> {
               ),
               SizedBox(height: 8),
               Text(
-                'Stanford Byers Center for Biodesign',
+                'Wireless and Mobile Programming Final Project',
                 style: TextStyle(
                   fontSize: 16,
                   color: Colors.black54,
@@ -135,6 +129,7 @@ class _RegistrationScreenState extends State<RegisterScreen> {
               TextInputField(
                   textController: _firstNameController,
                   label: 'First Name',
+                  keyboardType: null,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please enter your first name';
@@ -148,6 +143,7 @@ class _RegistrationScreenState extends State<RegisterScreen> {
               TextInputField(
                   textController: _lastNameController,
                   label: 'Last Name',
+                  keyboardType: null,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please enter your last name';
@@ -158,19 +154,7 @@ class _RegistrationScreenState extends State<RegisterScreen> {
               const SizedBox(height: 16),
 
               // Email Field
-              TextInputField(
-                textController: _emailController,
-                label: 'Email',
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter your email';
-                  }
-                  if (!value.contains('@')) {
-                    return 'Please enter a valid email';
-                  }
-                  return null;
-                },
-              ),
+              EmailField(emailController: _emailController),
 
               const SizedBox(height: 16),
 
@@ -189,74 +173,65 @@ class _RegistrationScreenState extends State<RegisterScreen> {
               const SizedBox(height: 16),
 
               // Password Field
-              TextInputField(
-                textController: _passwordController,
-                label: 'Password',
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter a password';
-                  }
-                  if (!_isPasswordValid(value)) {
-                    return 'Password does not meet requirements';
-                  }
-                  return null;
-                },
-                obsecurePassword: _obscurePassword,
-                suffixIcon: IconButton(
-                  icon: Icon(
-                    _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                    color: Colors.grey,
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      _obscurePassword = !_obscurePassword;
-                    });
-                  },
-                ),
+              PasswordField(
+                  passwordController: _passwordController,
+                  label: "Password",
+                  confirmPassword: false,
               ),
 
               const SizedBox(height: 16),
 
               // Confirm Password Field
-              TextInputField(
-                  textController: _confirmPasswordController,
-                  label: 'Confirm Password',
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please confirm your password';
-                    }
-                    if (value != _passwordController.text) {
-                      return 'Passwords do not match';
-                    }
-                    return null;
-                  },
-                  obsecurePassword: _obscureConfirmPassword,
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _obscureConfirmPassword
-                          ? Icons.visibility_off
-                          : Icons.visibility,
-                      color: Colors.grey,
-                    ),
+              PasswordField(
+                  passwordController: _confirmPasswordController,
+                  label: "Confirm Password",
+                  confirmPassword: _passwordController.text == _confirmPasswordController.text ? false : true
+              ),
+
+              const SizedBox(height: 16),
+              Align(
+                  alignment: Alignment.centerLeft,
+                  child: TextButton(
                     onPressed: () {
-                      setState(() {
-                        _obscureConfirmPassword = !_obscureConfirmPassword;
-                      });
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const SignInScreen()));
                     },
-                  )),
+                    style: TextButton.styleFrom(
+                      padding: EdgeInsets.zero,
+                      minimumSize: const Size(0, 0),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    child: const Text(
+                      'Have an Account?',
+                      style: TextStyle(
+                        color: Color(0xFF4B5BA6),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+              ),
 
               const SizedBox(height: 32),
 
               // Register Button
-              Center(
-                  child: RoundButton(
-                      label: "Next",
+              SizedBox(
+                  width: 400,
+                  child: Center(
+                    child: _isLoading
+                        ? const CircularProgressIndicator()
+                        : RoundButton(
+                      label: 'Sign Up',
                       onPressed: () {
                         if (_formKey.currentState!.validate()) {
                           _register();
                         }
                       },
-                      color: const Color(0xFF4B5BA6))),
+                      color: const Color(0xFF4B5BA6),
+                    ),
+                  )),
+
               const SizedBox(height: 16),
             ],
           ),

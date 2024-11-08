@@ -26,8 +26,10 @@ class _RegisterMethodState extends State<RegisterMethod> {
           idToken: googleAuth.idToken,
         );
         await _auth.signInWithCredential(credential);
-        Navigator.push(context,
-              MaterialPageRoute(builder: (context) => const MainScreen()));
+        Navigator.pushAndRemoveUntil(context,
+              MaterialPageRoute(builder: (context) => const MainScreen()),
+              (Route<dynamic> route) => false,
+        );
       }
     } catch (error) {
       print(error);
@@ -37,6 +39,7 @@ class _RegisterMethodState extends State<RegisterMethod> {
   @override
   Widget build(BuildContext context) {
     return AuthMethodLayout(
+        backArrow: false,
         handleEmailAuth: () {
           Navigator.push(context,
               MaterialPageRoute(builder: (context) => const RegisterScreen()));

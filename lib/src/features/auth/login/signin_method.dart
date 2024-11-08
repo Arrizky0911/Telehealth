@@ -3,6 +3,7 @@ import 'package:myapp/src/features/auth/login/signin_screen.dart';
 import 'package:myapp/src/features/auth/widgets/auth_method.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:myapp/src/features/main/main_screen.dart';
 
 class SignInMethod extends StatefulWidget {
   const SignInMethod({super.key});
@@ -26,6 +27,9 @@ class _SignInMethodState extends State<SignInMethod> {
         );
         await _auth.signInWithCredential(credential);
         // Navigate to home screen or handle new user
+        Navigator.push(context,
+          MaterialPageRoute(builder: (context) => const MainScreen()),
+        );
       }
     } catch (error) {
       print(error);
@@ -35,9 +39,11 @@ class _SignInMethodState extends State<SignInMethod> {
   @override
   Widget build(BuildContext context) {
     return AuthMethodLayout(
+        backArrow: true,
         handleEmailAuth: () {
           Navigator.push(context,
-              MaterialPageRoute(builder: (context) => const SignInScreen()));
+              MaterialPageRoute(builder: (context) => const SignInScreen()),
+          );
         },
         handleGoogleSignIn: _handleGoogleSignIn,
         auth: "Sign In");
