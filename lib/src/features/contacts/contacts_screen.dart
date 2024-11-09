@@ -5,6 +5,23 @@ class ContactsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final contacts = [
+      Contact(
+        name: "Dr. Oliver Aalami",
+        title: "Director",
+        description: "Dr. Aalami is the director of the CardinalKit project.",
+        image: "assets/images/placeholder.png",
+        location: "318 Campus Drive, Stanford, California, USA, 94305",
+      ),
+      Contact(
+        name: "Dr. Vishnu Ravi",
+        title: "Lead Architect",
+        description: "Dr. Ravi is the lead architect and software engineer of the CardinalKit project.",
+        image: "assets/images/placeholder.png",
+        location: "318 Campus Drive, Stanford, California, USA, 94305",
+      ),
+    ];
+
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
@@ -17,26 +34,18 @@ class ContactsScreen extends StatelessWidget {
                   'Contacts',
                   style: TextStyle(
                     fontSize: 24,
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: 24),
-                ContactCard(
-                  name: 'Dr. Oliver Aalami',
-                  title: 'Director',
-                  description: 'Dr. Aalami is the director of the CardinalKit project.',
-                  onCall: () {},
-                  onSms: () {},
-                  onEmail: () {},
-                ),
                 const SizedBox(height: 16),
-                ContactCard(
-                  name: 'Dr. Vishnu Ravi',
-                  title: 'Lead Architect',
-                  description: 'Dr. Ravi is the lead architect and software engineer of the CardinalKit project.',
-                  onCall: () {},
-                  onSms: () {},
-                  onEmail: () {},
+                ListView.separated(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: contacts.length,
+                  separatorBuilder: (context, index) => const SizedBox(height: 16),
+                  itemBuilder: (context, index) {
+                    return ImprovedContactCard(contact: contacts[index]);
+                  },
                 ),
               ],
             ),
@@ -47,165 +56,140 @@ class ContactsScreen extends StatelessWidget {
   }
 }
 
-class ContactCard extends StatelessWidget {
-  final String name;
-  final String title;
-  final String description;
-  final VoidCallback onCall;
-  final VoidCallback onSms;
-  final VoidCallback onEmail;
+class ImprovedContactCard extends StatelessWidget {
+  final Contact contact;
 
-  const ContactCard({
+  const ImprovedContactCard({
     super.key,
-    required this.name,
-    required this.title,
-    required this.description,
-    required this.onCall,
-    required this.onSms,
-    required this.onEmail,
+    required this.contact,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFFE8EAF6),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: const BoxDecoration(
-                  color: Color(0xFF5C6BC0),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.person_outline,
-                  color: Colors.white,
-                  size: 24,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      name,
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        color: Colors.black87,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Text(
-            description,
-            style: const TextStyle(
-              fontSize: 16,
-              color: Colors.black87,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: onCall,
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.black87,
-                    side: const BorderSide(color: Colors.black26),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                  ),
-                  child: const Text('Call'),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: onSms,
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.black87,
-                    side: const BorderSide(color: Colors.black26),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                  ),
-                  child: const Text('SMS'),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: onEmail,
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.black87,
-                    side: const BorderSide(color: Colors.black26),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                  ),
-                  child: const Text('Email'),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.5),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
               children: [
-                Text(
-                  'Location',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                  ),
+                CircleAvatar(
+                  radius: 24,
+                  backgroundImage: AssetImage(contact.image),
+                  child: contact.image.isEmpty
+                      ? Text(
+                    contact.name.split(' ').map((n) => n[0]).join(''),
+                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  )
+                      : null,
                 ),
-                SizedBox(height: 4),
-                Text(
-                  '318 Campus Drive',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.black87,
-                  ),
-                ),
-                Text(
-                  'Stanford, California, USA, 94305',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.black87,
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        contact.name,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        contact.title,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
-          ),
-        ],
+            const SizedBox(height: 12),
+            Text(
+              contact.description,
+              style: const TextStyle(fontSize: 14),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () {},
+                    icon: const Icon(Icons.phone, size: 18),
+                    label: const Text('Call'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: const Color(0xFF5C6BC0),
+                      side: const BorderSide(color: Color(0xFF5C6BC0)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () {},
+                    icon: const Icon(Icons.message, size: 18),
+                    label: const Text('SMS'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: const Color(0xFF5C6BC0),
+                      side: const BorderSide(color: Color(0xFF5C6BC0)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () {},
+                    icon: const Icon(Icons.email, size: 18),
+                    label: const Text('Email'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: const Color(0xFF5C6BC0),
+                      side: const BorderSide(color: Color(0xFF5C6BC0)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                const Icon(Icons.location_on, size: 16, color: Colors.grey),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    contact.location,
+                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
+}
+
+class Contact {
+  final String name;
+  final String title;
+  final String description;
+  final String image;
+  final String location;
+
+  Contact({
+    required this.name,
+    required this.title,
+    required this.description,
+    required this.image,
+    required this.location,
+  });
 }

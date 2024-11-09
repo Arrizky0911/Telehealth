@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:myapp/src/features/profile/widgets/menu_item.dart';
 import 'package:myapp/src/features/welcome/enter_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -11,36 +11,14 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  String firstName = '';
-  String lastName = '';
+  String firstName = 'First Name';
+  String lastName = 'Last Name';
   bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _loadUserData();
-  }
 
-  Future<void> _loadUserData() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      try {
-        final userData = await FirebaseFirestore.instance
-            .collection('users')
-            .doc(user.uid)
-            .get();
-        setState(() {
-          firstName = userData.data()?['firstName'] ?? '';
-          lastName = userData.data()?['lastName'] ?? '';
-          isLoading = false;
-        });
-      } catch (e) {
-        print('Error loading user data: $e');
-        setState(() {
-          isLoading = false;
-        });
-      }
-    }
   }
 
   Future<void> _signOut() async {
@@ -67,14 +45,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Profile',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 32),
                 Center(
                   child: Container(
                     width: 120,
@@ -91,43 +61,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
                 const SizedBox(height: 32),
-                if (isLoading)
-                  const Center(child: CircularProgressIndicator())
-                else
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Name',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '$firstName $lastName',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          color: Colors.black87,
-                        ),
-                      ),
-                    ],
-                  ),
-                const SizedBox(height: 32),
-                _MenuItem(
+                MenuItem(
                   icon: Icons.person_outline,
                   title: 'Personal Information',
                   onTap: () {},
                 ),
                 const SizedBox(height: 12),
-                _MenuItem(
+                MenuItem(
                   icon: Icons.medical_services_outlined,
                   title: 'Medical History',
                   onTap: () {},
                 ),
                 const SizedBox(height: 12),
-                _MenuItem(
+                MenuItem(
                   icon: Icons.translate_outlined,
                   title: 'Languages',
                   onTap: () {},
@@ -163,73 +109,3 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 }
 
-class _MenuItem extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final VoidCallback onTap;
-
-  const _MenuItem({
-    required this.icon,
-    required this.title,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Ink(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 10,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Row(
-              children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[200],
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    icon,
-                    size: 24,
-                    color: Colors.black54,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.black87,
-                    ),
-                  ),
-                ),
-                const Icon(
-                  Icons.chevron_right,
-                  color: Colors.black54,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}

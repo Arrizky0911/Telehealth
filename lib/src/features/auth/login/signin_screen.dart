@@ -85,7 +85,7 @@ class _LoginScreenState extends State<SignInScreen> {
 
       // Title and Subtitle
       const Text(
-        'Sign In to CardinalKit',
+        'Sign In to WMP Final',
         style: TextStyle(
           fontSize: 28,
           fontWeight: FontWeight.bold,
