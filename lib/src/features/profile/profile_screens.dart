@@ -49,13 +49,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   child: Container(
                     width: 120,
                     height: 120,
-                    decoration: const BoxDecoration(
-                      color: Color(0xFF5C6BC0),
+                    decoration: BoxDecoration(
+                      color: Colors.black87,
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.person_outline,
-                      size: 80,
                       color: Colors.white,
                     ),
                   ),
