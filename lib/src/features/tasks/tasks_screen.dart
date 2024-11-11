@@ -12,31 +12,164 @@ class _ImprovedTasksScreenState extends State<TasksScreen> {
   DateTime _selectedDate = DateTime.now();
   final List<DateTime> _weekDates = List.generate(
     7,
-        (index) => DateTime.now().add(Duration(days: index)),
+    (index) => DateTime.now().add(Duration(days: index)),
   );
+  
+  final Map<DateTime, List<Task>> _tasksByDate = {};
+  
+  List<Task> _getTasksForSelectedDate() {
+    final dateKey = DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day);
+    return _tasksByDate[dateKey] ?? [];
+  }
 
-  final List<Task> _tasks = [
-    Task(
-      id: 1,
-      title: "Daily Activity Goal",
-      subtitle: "Take 10,000 steps daily.",
-      progress: 3500,
-      total: 10000,
-    ),
-    Task(
-      id: 2,
-      title: "Pain Questionnaire",
-      subtitle: "Take this survey daily any time to assess your level of pain.",
-    ),
-    Task(
-      id: 3,
-      title: "Take Daily Medication",
-      subtitle: "Take 1 tablet by mouth every day with breakfast",
-    ),
-  ];
+  void _addNewTask(String title, String subtitle, [int? progress, int? total]) {
+    setState(() {
+      final dateKey = DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day);
+      final newTask = Task(
+        id: DateTime.now().millisecondsSinceEpoch,
+        title: title,
+        subtitle: subtitle,
+        progress: progress ?? 0,
+        total: total,
+      );
+      
+      if (_tasksByDate.containsKey(dateKey)) {
+        _tasksByDate[dateKey]!.add(newTask);
+      } else {
+        _tasksByDate[dateKey] = [newTask];
+      }
+    });
+  }
+
+  void _toggleTaskStatus(int taskId) {
+    setState(() {
+      final dateKey = DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day);
+      final tasks = _tasksByDate[dateKey];
+      if (tasks != null) {
+        final taskIndex = tasks.indexWhere((task) => task.id == taskId);
+        if (taskIndex != -1) {
+          tasks[taskIndex].completed = !tasks[taskIndex].completed;
+        }
+      }
+    });
+  }
+
+  void _showAddTaskDialog() {
+    final titleController = TextEditingController();
+    final subtitleController = TextEditingController();
+    final progressController = TextEditingController();
+    final totalController = TextEditingController();
+    bool useProgress = false;
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: const Text('Add New Task'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: titleController,
+                decoration: const InputDecoration(
+                  labelText: 'Task Title',
+                  hintText: 'Enter task title',
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: subtitleController,
+                decoration: const InputDecoration(
+                  labelText: 'Task Description',
+                  hintText: 'Enter task description',
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Checkbox(
+                    value: useProgress,
+                    onChanged: (value) {
+                      setState(() {
+                        useProgress = value ?? false;
+                      });
+                    },
+                  ),
+                  const Text('Add Progress Tracker'),
+                ],
+              ),
+              if (useProgress) ...[
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: progressController,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          labelText: 'Current Progress',
+                          hintText: '0',
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: TextField(
+                        controller: totalController,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          labelText: 'Target',
+                          hintText: '100',
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                if (titleController.text.isNotEmpty) {
+                  _addNewTask(
+                    titleController.text,
+                    subtitleController.text,
+                    useProgress ? int.tryParse(progressController.text) ?? 0 : null,
+                    useProgress ? int.tryParse(totalController.text) ?? 100 : null,
+                  );
+                  Navigator.pop(context);
+                }
+              },
+              child: const Text('Add'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _updateTaskProgress(int taskId, int newProgress) {
+    setState(() {
+      final dateKey = DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day);
+      final tasks = _tasksByDate[dateKey];
+      if (tasks != null) {
+        final taskIndex = tasks.indexWhere((task) => task.id == taskId);
+        if (taskIndex != -1 && tasks[taskIndex].total != null) {
+          tasks[taskIndex].progress = newProgress.clamp(0, tasks[taskIndex].total!);
+        }
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    final tasksForSelectedDate = _getTasksForSelectedDate();
+    
     return Scaffold(
       body: SafeArea(
         child: Column(
@@ -101,24 +234,37 @@ class _ImprovedTasksScreenState extends State<TasksScreen> {
               ),
             ),
             Expanded(
-              child: ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                itemCount: _tasks.length,
-                itemBuilder: (context, index) {
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 16.0),
-                    child: _TaskCard(task: _tasks[index]),
-                  );
-                },
-              ),
+              child: tasksForSelectedDate.isEmpty
+                ? Center(
+                    child: Text(
+                      'No tasks for this date',
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        color: Colors.grey,
+                      ),
+                    ),
+                  )
+                : ListView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    itemCount: tasksForSelectedDate.length,
+                    itemBuilder: (context, index) {
+                      final task = tasksForSelectedDate[index];
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 16.0),
+                        child: _TaskCard(
+                          task: task,
+                          onToggle: () => _toggleTaskStatus(task.id),
+                          onProgressUpdate: (taskId, newProgress) => 
+                            _updateTaskProgress(taskId, newProgress),
+                        ),
+                      );
+                    },
+                  ),
             ),
           ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Add new task logic here
-        },
+        onPressed: _showAddTaskDialog,
         backgroundColor: const Color(0xFF5C6BC0),
         child: const Icon(Icons.add),
       ),
@@ -182,8 +328,14 @@ class _DateButton extends StatelessWidget {
 
 class _TaskCard extends StatelessWidget {
   final Task task;
+  final VoidCallback onToggle;
+  final Function(int, int) onProgressUpdate;
 
-  const _TaskCard({required this.task});
+  const _TaskCard({
+    required this.task,
+    required this.onToggle,
+    required this.onProgressUpdate,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -196,10 +348,8 @@ class _TaskCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Checkbox(
-              value: false,
-              onChanged: (value) {
-                // Handle checkbox state change
-              },
+              value: task.completed,
+              onChanged: (_) => onToggle(),
               shape: const CircleBorder(),
               activeColor: const Color(0xFF5C6BC0),
             ),
@@ -210,9 +360,11 @@ class _TaskCard extends StatelessWidget {
                 children: [
                   Text(
                     task.title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
+                      decoration: task.completed ? TextDecoration.lineThrough : null,
+                      color: task.completed ? Colors.grey : Colors.black,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -231,21 +383,38 @@ class _TaskCard extends StatelessWidget {
                       valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF5C6BC0)),
                     ),
                     const SizedBox(height: 4),
-                    Text(
-                      '${task.progress} / ${task.total}',
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          '${task.progress} / ${task.total}',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Row(
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.remove, size: 20),
+                              onPressed: () => onProgressUpdate(task.id, task.progress! - 1),
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                            ),
+                            const SizedBox(width: 8),
+                            IconButton(
+                              icon: const Icon(Icons.add, size: 20),
+                              onPressed: () => onProgressUpdate(task.id, task.progress! + 1),
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ],
                 ],
               ),
-            ),
-            const Icon(
-              Icons.check_circle_outline,
-              color: Color(0xFF5C6BC0),
-              size: 24,
             ),
           ],
         ),
@@ -258,8 +427,9 @@ class Task {
   final int id;
   final String title;
   final String subtitle;
-  final int? progress;
+  int? progress;
   final int? total;
+  bool completed;
 
   Task({
     required this.id,
@@ -267,5 +437,6 @@ class Task {
     required this.subtitle,
     this.progress,
     this.total,
+    this.completed = false,
   });
 }
