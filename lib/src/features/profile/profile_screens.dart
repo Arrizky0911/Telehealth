@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:myapp/src/features/profile/widgets/menu_item.dart';
 import 'package:myapp/src/features/welcome/enter_screen.dart';
+import 'package:myapp/src/features/profile/personal_information_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -63,7 +64,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 MenuItem(
                   icon: Icons.person_outline,
                   title: 'Personal Information',
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const PersonalInformationScreen(),
+                      ),
+                    );
+                  },
                 ),
                 const SizedBox(height: 12),
                 MenuItem(

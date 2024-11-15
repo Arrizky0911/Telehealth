@@ -18,7 +18,7 @@ class EnterScreen extends StatelessWidget {
 
                 // Title
                 const Text(
-                  'WMP Final',
+                  'Telehealth ',
                   style: TextStyle(
                     fontSize: 32,
                     fontWeight: FontWeight.bold,
