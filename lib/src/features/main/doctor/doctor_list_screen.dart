@@ -10,33 +10,33 @@ class DoctorListScreen extends StatefulWidget {
 class _DoctorListScreenState extends State<DoctorListScreen> {
   final List<Map<String, String>> doctors = [
     {
-      'name': 'Dr. Hannibal Lector',
+      'name': 'Dr. Hannibal Lectore',
       'rating': '4.0',
-      'specialty': 'Orthopedics',
+      'specialty': 'Neurologist',
       'time': '9:00 AM - 10:00 AM'
     },
     {
       'name': 'Dr. Johann Liebert',
       'rating': '4.1',
-      'specialty': 'Cardiologist',
+      'specialty': 'Pediatrician',
       'time': '10:00 AM - 11:00 AM'
     },
     {
       'name': 'Dr. Emily Rodriguez',
       'rating': '4.0',
-      'specialty': 'Cardiologist',
+      'specialty': 'Pediatrician',
       'time': '11:00 AM - 12:00 PM'
     },
     {
       'name': 'Dr. James Wilson',
       'rating': '4.1',
-      'specialty': 'Orthopedics',
+      'specialty': 'Neurologist',
       'time': '12:00 PM - 1:00 PM'
     },
     {
       'name': 'Dr. Lisa Kim',
       'rating': '4.0',
-      'specialty': 'Cardiologist',
+      'specialty': 'Pediatrician',
       'time': '1:00 PM - 2:00 PM'
     },
     {
@@ -73,6 +73,7 @@ class _DoctorListScreenState extends State<DoctorListScreen> {
 
   List<Map<String, String>> filteredDoctors = [];
   final TextEditingController _searchController = TextEditingController();
+  String selectedSpecialty = 'All';
 
   @override
   void initState() {
@@ -87,7 +88,10 @@ class _DoctorListScreenState extends State<DoctorListScreen> {
       filteredDoctors = doctors.where((doctor) {
         final name = doctor['name']!.toLowerCase();
         final specialty = doctor['specialty']!.toLowerCase();
-        return name.contains(query) || specialty.contains(query);
+        final matchesSearch = name.contains(query) || specialty.contains(query);
+        final matchesFilter = selectedSpecialty == 'All' || 
+                            doctor['specialty'] == selectedSpecialty;
+        return matchesSearch && matchesFilter;
       }).toList();
     });
   }
@@ -125,7 +129,7 @@ class _DoctorListScreenState extends State<DoctorListScreen> {
                         const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                     child: Column(
                       mainAxisSize: MainAxisSize
-                          .min, // Ensures content doesn't exceed height
+                          .min, 
                       children: [
                         Flexible(
                             child:
@@ -195,14 +199,13 @@ class _DoctorListScreenState extends State<DoctorListScreen> {
     return SizedBox(
       height: 32,
       child: ListView(
-        // Change SingleChildScrollView with ListView
         scrollDirection: Axis.horizontal,
         children: [
-          _buildChip('All', true),
-          _buildChip('Cardiologist', false),
-          _buildChip('Orthopedics', false),
-          _buildChip('Pediatrician', false),
-          _buildChip('Neurologist', false),
+          _buildChip('All', selectedSpecialty == 'All'),
+          _buildChip('Cardiologist', selectedSpecialty == 'Cardiologist'),
+          _buildChip('Orthopedics', selectedSpecialty == 'Orthopedics'),
+          _buildChip('Pediatrician', selectedSpecialty == 'Pediatrician'),
+          _buildChip('Neurologist', selectedSpecialty == 'Neurologist'),
         ],
       ),
     );
@@ -221,7 +224,12 @@ class _DoctorListScreenState extends State<DoctorListScreen> {
             color: isSelected ? Colors.white : Colors.black87,
           ),
         ),
-        onSelected: (bool value) {},
+        onSelected: (bool value) {
+          setState(() {
+            selectedSpecialty = label;
+            _onSearchChanged(); // Trigger filter
+          });
+        },
         selectedColor: const Color(0xFF5C6BC0),
         backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(
