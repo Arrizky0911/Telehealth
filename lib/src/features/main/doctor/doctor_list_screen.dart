@@ -1,13 +1,109 @@
 import 'package:flutter/material.dart';
 
-class DoctorListScreen extends StatelessWidget {
+class DoctorListScreen extends StatefulWidget {
   const DoctorListScreen({super.key});
+
+  @override
+  State<DoctorListScreen> createState() => _DoctorListScreenState();
+}
+
+class _DoctorListScreenState extends State<DoctorListScreen> {
+  final List<Map<String, String>> doctors = [
+    {
+      'name': 'Dr. Hannibal Lector',
+      'rating': '4.0',
+      'specialty': 'Orthopedics',
+      'time': '9:00 AM - 10:00 AM'
+    },
+    {
+      'name': 'Dr. Johann Liebert',
+      'rating': '4.1',
+      'specialty': 'Cardiologist',
+      'time': '10:00 AM - 11:00 AM'
+    },
+    {
+      'name': 'Dr. Emily Rodriguez',
+      'rating': '4.0',
+      'specialty': 'Cardiologist',
+      'time': '11:00 AM - 12:00 PM'
+    },
+    {
+      'name': 'Dr. James Wilson',
+      'rating': '4.1',
+      'specialty': 'Orthopedics',
+      'time': '12:00 PM - 1:00 PM'
+    },
+    {
+      'name': 'Dr. Lisa Kim',
+      'rating': '4.0',
+      'specialty': 'Cardiologist',
+      'time': '1:00 PM - 2:00 PM'
+    },
+    {
+      'name': 'Dr. David Patel',
+      'rating': '4.1',
+      'specialty': 'Orthopedics',
+      'time': '2:00 PM - 3:00 PM'
+    },
+    {
+      'name': 'Dr. Maria Garcia',
+      'rating': '4.0',
+      'specialty': 'Cardiologist',
+      'time': '3:00 PM - 4:00 PM'
+    },
+    {
+      'name': 'Dr. Robert Lee',
+      'rating': '4.1',
+      'specialty': 'Orthopedics',
+      'time': '4:00 PM - 5:00 PM'
+    },
+    {
+      'name': 'Dr. Amanda Taylor',
+      'rating': '4.0',
+      'specialty': 'Cardiologist',
+      'time': '5:00 PM - 6:00 PM'
+    },
+    {
+      'name': 'Dr. Thomas Brown',
+      'rating': '4.1',
+      'specialty': 'Orthopedics',
+      'time': '6:00 PM - 7:00 PM'
+    },
+  ];
+
+  List<Map<String, String>> filteredDoctors = [];
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    filteredDoctors = doctors;
+    _searchController.addListener(_onSearchChanged);
+  }
+
+  void _onSearchChanged() {
+    final query = _searchController.text.toLowerCase();
+    setState(() {
+      filteredDoctors = doctors.where((doctor) {
+        final name = doctor['name']!.toLowerCase();
+        final specialty = doctor['specialty']!.toLowerCase();
+        return name.contains(query) || specialty.contains(query);
+      }).toList();
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: SafeArea( // Wrap everything with SafeArea
+      body: SafeArea(
+        // Wrap everything with SafeArea
         child: CustomScrollView(
           slivers: [
             SliverAppBar(
@@ -25,13 +121,19 @@ class DoctorListScreen extends StatelessWidget {
                 child: Container(
                   color: Colors.white,
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                     child: Column(
-                      mainAxisSize: MainAxisSize.min, // Ensures content doesn't exceed height
+                      mainAxisSize: MainAxisSize
+                          .min, // Ensures content doesn't exceed height
                       children: [
-                        Flexible(child: _buildSearchBar()), // Add Flexible for dynamic sizing
+                        Flexible(
+                            child:
+                                _buildSearchBar()), // Add Flexible for dynamic sizing
                         const SizedBox(height: 8),
-                        Flexible(child: _buildFilterChips()), // Add Flexible for filter chips
+                        Flexible(
+                            child:
+                                _buildFilterChips()), // Add Flexible for filter chips
                       ],
                     ),
                   ),
@@ -40,84 +142,24 @@ class DoctorListScreen extends StatelessWidget {
             ),
             SliverPadding(
               padding: const EdgeInsets.all(16),
-              sliver: SliverList(
+              sliver: SliverGrid(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  mainAxisSpacing: 16,
+                  crossAxisSpacing: 16,
+                  childAspectRatio: 0.8, // Sesuaikan rasio sesuai kebutuhan
+                ),
                 delegate: SliverChildBuilderDelegate(
                   (context, index) {
-                    // Dummy doctor
-                    final doctors = [
-                      {
-                        'name': 'Dr. Hannibal Lector',
-                        'rating': '4.0',
-                        'specialty': 'Orthopedics',
-                        'time': '9:00 AM - 10:00 AM'
-                      },
-                      {
-                        'name': 'Dr. Johann Liebert',
-                        'rating': '4.1',
-                        'specialty': 'Cardiologist',
-                        'time': '10:00 AM - 11:00 AM'
-                      },
-                      {
-                        'name': 'Dr. Emily Rodriguez',
-                        'rating': '4.0',
-                        'specialty': 'Cardiologist',
-                        'time': '11:00 AM - 12:00 PM'
-                      },
-                      {
-                        'name': 'Dr. James Wilson',
-                        'rating': '4.1',
-                        'specialty': 'Orthopedics',
-                        'time': '12:00 PM - 1:00 PM'
-                      },
-                      {
-                        'name': 'Dr. Lisa Kim',
-                        'rating': '4.0',
-                        'specialty': 'Cardiologist',
-                        'time': '1:00 PM - 2:00 PM'
-                      },
-                      {
-                        'name': 'Dr. David Patel',
-                        'rating': '4.1',
-                        'specialty': 'Orthopedics',
-                        'time': '2:00 PM - 3:00 PM'
-                      },
-                      {
-                        'name': 'Dr. Maria Garcia',
-                        'rating': '4.0',
-                        'specialty': 'Cardiologist',
-                        'time': '3:00 PM - 4:00 PM'
-                      },
-                      {
-                        'name': 'Dr. Robert Lee',
-                        'rating': '4.1',
-                        'specialty': 'Orthopedics',
-                        'time': '4:00 PM - 5:00 PM'
-                      },
-                      {
-                        'name': 'Dr. Amanda Taylor',
-                        'rating': '4.0',
-                        'specialty': 'Cardiologist',
-                        'time': '5:00 PM - 6:00 PM'
-                      },
-                      {
-                        'name': 'Dr. Thomas Brown',
-                        'rating': '4.1',
-                        'specialty': 'Orthopedics',
-                        'time': '6:00 PM - 7:00 PM'
-                      },
-                    ];
-
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 16),
-                      child: _buildDoctorCard(
-                        doctors[index]['name']!,
-                        doctors[index]['rating']!,
-                        doctors[index]['specialty']!,
-                        doctors[index]['time']!,
-                      ),
+                    final doctor = filteredDoctors[index];
+                    return _buildDoctorCard(
+                      doctor['name']!,
+                      doctor['rating']!,
+                      doctor['specialty']!,
+                      doctor['time']!,
                     );
                   },
-                  childCount: 10,
+                  childCount: filteredDoctors.length,
                 ),
               ),
             ),
@@ -129,8 +171,9 @@ class DoctorListScreen extends StatelessWidget {
 
   Widget _buildSearchBar() {
     return SizedBox(
-      height: 45, // consistent height
+      height: 45,
       child: TextField(
+        controller: _searchController,
         decoration: InputDecoration(
           hintText: 'Search doctors...',
           hintStyle: const TextStyle(fontSize: 16, color: Colors.grey),
@@ -141,7 +184,8 @@ class DoctorListScreen extends StatelessWidget {
             borderRadius: BorderRadius.circular(8),
             borderSide: BorderSide.none,
           ),
-          contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
+          contentPadding:
+              const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
         ),
       ),
     );
@@ -149,8 +193,9 @@ class DoctorListScreen extends StatelessWidget {
 
   Widget _buildFilterChips() {
     return SizedBox(
-      height: 32, 
-      child: ListView( // Change SingleChildScrollView with ListView
+      height: 32,
+      child: ListView(
+        // Change SingleChildScrollView with ListView
         scrollDirection: Axis.horizontal,
         children: [
           _buildChip('All', true),
@@ -168,6 +213,7 @@ class DoctorListScreen extends StatelessWidget {
       padding: const EdgeInsets.only(right: 8),
       child: FilterChip(
         selected: isSelected,
+        showCheckmark: false,
         label: Text(
           label,
           style: TextStyle(
@@ -191,75 +237,67 @@ class DoctorListScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDoctorCard(String name, String rating, String specialty, String time) {
+  Widget _buildDoctorCard(
+      String name, String rating, String specialty, String time) {
     return InkWell(
       onTap: () {
-        // TODO: Navigate to doctor detail  page
+        // TODO: Navigate to doctor detail page
       },
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey.shade200),
           borderRadius: BorderRadius.circular(12),
           color: Colors.white,
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withOpacity(0.1),
-              spreadRadius: 0,
-              blurRadius: 10,
-              offset: const Offset(0, 4),
+              color: Colors.grey.withOpacity(0.3),
+              spreadRadius: 2,
+              blurRadius: 8,
+              offset: const Offset(0, 2),
             ),
           ],
         ),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             CircleAvatar(
-              radius: 30,
+              radius: 35,
               backgroundColor: const Color(0xFF7986CB),
               child: Text(
                 name.substring(0, 2),
-                style: const TextStyle(color: Colors.white),
+                style: const TextStyle(color: Colors.white, fontSize: 20),
               ),
             ),
-            const SizedBox(width: 16),
-            Expanded( // Use Expanded to avoid overflow
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Text(
-                        name,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
-                      const SizedBox(width: 5),
-                      const Icon(Icons.check_circle, color: Color(0xFF5C6BC0), size: 16),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      const Icon(Icons.star, color: Colors.amber, size: 16),
-                      Text(rating),
-                      const SizedBox(width: 8),
-                      Text(specialty, style: const TextStyle(color: Colors.grey)),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      const Icon(Icons.access_time, size: 16, color: Colors.grey),
-                      const SizedBox(width: 4),
-                      Text(time, style: const TextStyle(color: Colors.grey)),
-                    ],
-                  ),
-                ],
+            const SizedBox(height: 12),
+            Text(
+              name,
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
               ),
             ),
-            const Icon(Icons.chevron_right, color: Colors.grey),
+            const SizedBox(height: 4),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.star, color: Colors.amber, size: 16),
+                const SizedBox(width: 4),
+                Text(rating, style: const TextStyle(fontSize: 12)),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Text(
+              specialty,
+              style: const TextStyle(color: Colors.grey, fontSize: 12),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              time,
+              style: const TextStyle(color: Colors.grey, fontSize: 12),
+            ),
           ],
         ),
       ),
@@ -285,7 +323,8 @@ class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
   double get maxExtent => maxHeight;
 
   @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+  Widget build(
+      BuildContext context, double shrinkOffset, bool overlapsContent) {
     return SizedBox.expand(child: child);
   }
 
