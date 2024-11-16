@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:myapp/src/features/tasks/tasks_screen.dart';
+import 'package:myapp/src/features/main/doctor/doctor_list_screen.dart';
 
 class VirtualConsultationsCard extends StatelessWidget {
   const VirtualConsultationsCard({super.key});
@@ -56,7 +57,10 @@ class VirtualConsultationsCard extends StatelessWidget {
             const SizedBox(height: 20),
             TextButton(
                 onPressed: () {
-
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const DoctorListScreen())
+                  );
                 },
                 child: const Row(
                   children: [
@@ -86,7 +90,7 @@ class VirtualConsultationsCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey.shade300),
+        border: Border.all(color: Colors.grey),
         borderRadius: BorderRadius.circular(10),
       ),
       child: Row(
