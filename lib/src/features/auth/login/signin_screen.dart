@@ -85,7 +85,7 @@ class _LoginScreenState extends State<SignInScreen> {
 
       // Title and Subtitle
       const Text(
-        'Sign In to WMP Final',
+        "Let's Sign in to Telehealth",
         style: TextStyle(
           fontSize: 28,
           fontWeight: FontWeight.bold,

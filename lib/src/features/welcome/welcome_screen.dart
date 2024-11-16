@@ -13,7 +13,7 @@ class WelcomeScreen extends StatelessWidget {
       widgets: [
       // Welcome Text
       const Text(
-        'Welcome to WMP Final',
+        'Welcome to Telehealth',
         style: TextStyle(
           fontSize: 26,
           fontWeight: FontWeight.bold,

@@ -98,7 +98,7 @@ class _RegistrationScreenState extends State<RegisterScreen> {
           child: Column(
             children: [
               Text(
-                'WMP Final',
+                'Telehealth',
                 style: TextStyle(
                   fontSize: 32,
                   fontWeight: FontWeight.bold,

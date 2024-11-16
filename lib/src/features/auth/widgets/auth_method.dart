@@ -30,7 +30,7 @@ class AuthMethodLayout extends StatelessWidget {
           height: MediaQuery.of(context).size.height * 0.3,
         ),
         Text(
-          auth == "Sign In" ? "Sign In to WMP Final" : "Create a new account",
+          auth == "Sign In" ? "Sign In to Telehealth" : "Create a new account",
           style: TextStyle(
             fontSize: 26,
             fontWeight: FontWeight.w600,
