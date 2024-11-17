@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:myapp/src/features/contacts/contacts_screen.dart';
 import 'package:myapp/src/features/profile/profile_screens.dart';
 import 'package:myapp/src/features/tasks/tasks_screen.dart';
 import 'package:myapp/src/features/main/home/home.dart';
+import 'package:myapp/src/features/shop/shop_screen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -39,9 +39,9 @@ class _MainScreenState extends State<MainScreen> {
             label: 'Tasks',
           ),
           NavigationDestination(
-            selectedIcon: Icon(Icons.contacts),
-            icon: Icon(Icons.contacts_outlined),
-            label: 'Contacts',
+            selectedIcon: Icon(Icons.shopping_bag),
+            icon: Icon(Icons.shopping_bag_outlined),
+            label: 'Shop',
           ),
           NavigationDestination(
             selectedIcon: Icon(Icons.person_2_rounded),
@@ -53,7 +53,7 @@ class _MainScreenState extends State<MainScreen> {
       body: <Widget>[
         const HomeScreen(),
         const TasksScreen(),
-        const ContactsScreen(),
+        const ShopScreen(),
         const ProfileScreen()
       ][currentPageIndex],
     );

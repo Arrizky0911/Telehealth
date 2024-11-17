@@ -9,9 +9,6 @@ class HealthInsightsCard extends StatefulWidget {
 }
 
 class _HealthInsightsCardState extends State<HealthInsightsCard> {
-  final PageController _pageController = PageController(viewportFraction: 0.85);
-  int _currentPage = 0;
-
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -36,58 +33,12 @@ class _HealthInsightsCardState extends State<HealthInsightsCard> {
         const SizedBox(height: 20),
         SizedBox(
           height: 200,
-          child: PageView(
-            controller: _pageController,
-            onPageChanged: (index) {
-              setState(() {
-                _currentPage = index;
-              });
-            },
-            children: const [
-              _HealthCard(
-                title: 'Heart Rate',
-                value: '97',
-                unit: 'bpm',
-                color: Color(0xFF8BC34A),
-                child: HeartRateGraph(),
-              ),
-              _HealthCard(
-                title: 'Steps Taken',
-                value: '1578',
-                unit: 'total',
-                color: Color(0xFFFF4081),
-                child: StepsGraph(),
-              ),
-              _HealthCard(
-                title: 'Hydration',
-                value: '85',
-                unit: '%',
-                color: Color(0xFF2196F3),
-                child: Icon(
-                  Icons.water_drop,
-                  size: 40,
-                  color: Colors.white,
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 16),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: List.generate(
-            3,
-                (index) => Container(
-              margin: const EdgeInsets.symmetric(horizontal: 4),
-              width: 8,
-              height: 8,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: _currentPage == index
-                    ? const Color(0xFF5C6BC0)
-                    : Colors.grey.shade300,
-              ),
-            ),
+          child: const _HealthCard(
+            title: 'Steps Taken',
+            value: '1578',
+            unit: 'total',
+            color: Color(0xFFFF4081),
+            child: StepsGraph(),
           ),
         ),
       ],
@@ -112,107 +63,87 @@ class _HealthCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 8),
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const Spacer(),
-              const Icon(
-                Icons.favorite_border,
-                color: Colors.white,
-                size: 20,
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                value,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 36,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(width: 4),
-              Padding(
-                padding: const EdgeInsets.only(bottom: 6),
-                child: Text(
-                  unit,
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 8),
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: color.withOpacity(0.3),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Text(
+                  title,
                   style: const TextStyle(
-                    color: Colors.white70,
-                    fontSize: 16,
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
+                const Spacer(),
+                Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(
+                    Icons.show_chart,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                ),
+              ],
+            ),
+            const Spacer(),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  value,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 36,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: Text(
+                    unit,
+                    style: const TextStyle(
+                      color: Colors.white70,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              height: 60,
+              child: ClipRect(
+                child: child,
               ),
-            ],
-          ),
-          const Spacer(),
-          SizedBox(
-            height: 60,
-            child: child,
-          ),
-        ],
+            ),
+          ],
+        ),
       ),
     );
   }
-}
-
-class HeartRateGraph extends StatelessWidget {
-  const HeartRateGraph({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return CustomPaint(
-      size: const Size(double.infinity, 60),
-      painter: HeartRateGraphPainter(),
-    );
-  }
-}
-
-class HeartRateGraphPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.white
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2;
-
-    final path = Path();
-    path.moveTo(0, size.height * 0.5);
-
-    // Create a smooth curve
-    for (var i = 0; i < size.width; i++) {
-      final x = i.toDouble();
-      final y = size.height * 0.5 +
-          math.sin(x * 0.05) * 20 +
-          math.sin(x * 0.01) * 10;
-      path.lineTo(x, y);
-    }
-
-    canvas.drawPath(path, paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 class StepsGraph extends StatelessWidget {
@@ -220,19 +151,47 @@ class StepsGraph extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: List.generate(
-        7,
-            (index) => Container(
-          width: 8,
-          height: 20.0 + math.Random().nextDouble() * 40,
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.7),
-            borderRadius: BorderRadius.circular(4),
-          ),
-        ),
+    return ClipRect(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final itemWidth = (constraints.maxWidth - 16) / 7;
+          return Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: List.generate(
+              7,
+              (index) => SizedBox(
+                width: itemWidth,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 6,
+                      height: 20.0 + math.Random().nextDouble() * 40,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.7),
+                        borderRadius: BorderRadius.circular(3),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    SizedBox(
+                      width: itemWidth,
+                      child: Text(
+                        'D${index + 1}',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                        ),
+                        textAlign: TextAlign.center,
+                        maxLines: 1,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }
