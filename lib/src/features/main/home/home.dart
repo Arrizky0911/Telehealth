@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:myapp/src/features/main/widgets/chatbot_card.dart';
 import 'package:myapp/src/features/main/widgets/consultation_card.dart';
 import 'package:myapp/src/features/main/widgets/health_cards.dart';
 import 'package:myapp/src/features/main/widgets/skin_check_card.dart';
+import 'package:myapp/src/features/main/widgets/virtual_assistant_card.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -38,7 +38,7 @@ class HomeScreen extends StatelessWidget {
               const SizedBox(height: 16),
               const VirtualConsultationsCard(),
               const SizedBox(height: 16),
-              const AIChatbotCard(),
+              const VirtualAssistantCard(),
               const SizedBox(height: 16),
             ],
           ),
