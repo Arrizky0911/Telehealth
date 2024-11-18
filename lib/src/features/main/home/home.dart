@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:myapp/src/features/main/widgets/chatbot_card.dart';
 import 'package:myapp/src/features/main/widgets/consultation_card.dart';
 import 'package:myapp/src/features/main/widgets/health_cards.dart';
-import 'package:myapp/src/features/main/widgets/symptom_checker_card.dart';
+import 'package:myapp/src/features/main/widgets/skin_check_card.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -32,6 +32,7 @@ class HomeScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 24),
+              const SkinCheckCard(),
               const SizedBox(height: 16),
               const HealthInsightsCard(),
               const SizedBox(height: 16),
@@ -39,8 +40,6 @@ class HomeScreen extends StatelessWidget {
               const SizedBox(height: 16),
               const AIChatbotCard(),
               const SizedBox(height: 16),
-              const SizedBox(height: 16),
-
             ],
           ),
         ),

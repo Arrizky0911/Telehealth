@@ -78,68 +78,70 @@ class _HealthCard extends StatelessWidget {
             ),
           ],
         ),
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const Spacer(),
-                Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(
-                    Icons.show_chart,
-                    color: Colors.white,
-                    size: 20,
-                  ),
-                ),
-              ],
-            ),
-            const Spacer(),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  value,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 36,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(width: 4),
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 6),
-                  child: Text(
-                    unit,
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Text(
+                    title,
                     style: const TextStyle(
-                      color: Colors.white70,
-                      fontSize: 16,
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            SizedBox(
-              height: 60,
-              child: ClipRect(
-                child: child,
+                  const Spacer(),
+                  Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(
+                      Icons.show_chart,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                  ),
+                ],
               ),
-            ),
-          ],
+              const Spacer(),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    value,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 36,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 6),
+                    child: Text(
+                      unit,
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              ClipRect(
+                child: SizedBox(
+                  height: 60,
+                  child: child,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -151,48 +153,60 @@ class StepsGraph extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ClipRect(
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final itemWidth = (constraints.maxWidth - 16) / 7;
-          return Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: List.generate(
-              7,
-              (index) => SizedBox(
-                width: itemWidth,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 6,
-                      height: 20.0 + math.Random().nextDouble() * 40,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.7),
-                        borderRadius: BorderRadius.circular(3),
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    SizedBox(
-                      width: itemWidth,
-                      child: Text(
-                        'D${index + 1}',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                        ),
-                        textAlign: TextAlign.center,
-                        maxLines: 1,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          );
-        },
-      ),
+    return CustomPaint(
+      size: const Size(double.infinity, 60),
+      painter: StepsGraphPainter(),
     );
   }
+}
+
+class StepsGraphPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white.withOpacity(0.7)
+      ..style = PaintingStyle.fill;
+
+    final textPainter = TextPainter(
+      textDirection: TextDirection.ltr,
+      textAlign: TextAlign.center,
+    );
+
+    final itemWidth = size.width / 7;
+    final barWidth = 6.0;
+
+    for (int i = 0; i < 7; i++) {
+      // Draw bar
+      final barHeight = 20.0 + math.Random().nextDouble() * 40;
+      final barX = (itemWidth * i) + (itemWidth - barWidth) / 2;
+      final barY = size.height - barHeight - 14; // Leave space for text
+
+      final rect = RRect.fromRectAndRadius(
+        Rect.fromLTWH(barX, barY, barWidth, barHeight),
+        const Radius.circular(3),
+      );
+      canvas.drawRRect(rect, paint);
+
+      // Draw text
+      textPainter.text = TextSpan(
+        text: 'D${i + 1}',
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 10,
+        ),
+      );
+      textPainter.layout(
+        minWidth: 0,
+        maxWidth: itemWidth,
+      );
+      
+      final textX = (itemWidth * i) + (itemWidth - textPainter.width) / 2;
+      final textY = size.height - textPainter.height;
+      
+      textPainter.paint(canvas, Offset(textX, textY));
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
