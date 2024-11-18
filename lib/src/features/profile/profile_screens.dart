@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:myapp/src/features/history/history_screen.dart';
 import 'package:myapp/src/features/profile/widgets/menu_item.dart';
 import 'package:myapp/src/features/welcome/enter_screen.dart';
 import 'package:myapp/src/features/profile/personal_information_screen.dart';
@@ -77,7 +78,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 MenuItem(
                   icon: Icons.medical_services_outlined,
                   title: 'Medical History',
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const HistoryScreen()),
+                    );
+                  },
                 ),
                 const SizedBox(height: 12),
                 MenuItem(
