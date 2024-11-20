@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:myapp/src/features/main/doctor/doctor_detail_screen.dart';
 
 class DoctorListScreen extends StatefulWidget {
   const DoctorListScreen({super.key});
@@ -249,7 +250,17 @@ class _DoctorListScreenState extends State<DoctorListScreen> {
       String name, String rating, String specialty, String time) {
     return InkWell(
       onTap: () {
-        // TODO: Navigate to doctor detail page
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => DoctorDetailScreen(
+              name: name,
+              rating: rating,
+              specialty: specialty,
+              time: time,
+            ),
+          ),
+        );
       },
       child: Container(
         padding: const EdgeInsets.all(12),
