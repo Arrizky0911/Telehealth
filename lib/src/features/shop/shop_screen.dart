@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
+import 'package:intl/intl.dart';
 
 class Product {
   final String id;
@@ -26,6 +28,25 @@ class ShopScreen extends StatefulWidget {
 }
 
 class _ShopScreenState extends State<ShopScreen> {
+  bool _isLoading = false;
+  Timer? _debounce;
+  List<Product> _filteredProducts = [];
+
+  void _filterProducts() {
+    setState(() => _isLoading = true);
+    
+    _filteredProducts = products.where((product) {
+      final matchesSearch = product.name.toLowerCase().contains(
+        _searchController.text.toLowerCase(),
+      );
+      final matchesCategory = selectedCategory == 'All' || 
+                           product.category == selectedCategory;
+      return matchesSearch && matchesCategory;
+    }).toList();
+    
+    setState(() => _isLoading = false);
+  }
+
   final List<Product> products = [
     Product(
       id: '1',
@@ -47,6 +68,43 @@ class _ShopScreenState extends State<ShopScreen> {
 
   String selectedCategory = 'All';
   final TextEditingController _searchController = TextEditingController();
+
+  List<Product> get filteredProducts {
+    setState(() => _isLoading = true);
+
+    final filtered = products.where((product) {
+      final matchesSearch = product.name.toLowerCase().contains(
+        _searchController.text.toLowerCase(),
+      );
+      final matchesCategory = selectedCategory == 'All' ||
+                              product.category == selectedCategory;
+      return matchesSearch && matchesCategory;
+    }).toList();
+
+    setState(() => _isLoading = false);
+    return filtered;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _filterProducts(); // Initial filter
+    _searchController.addListener(_onSearchChanged);
+  }
+
+  void _onSearchChanged() {
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    _debounce = Timer(const Duration(milliseconds: 500), () {
+      _filterProducts();
+    });
+  }
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -137,6 +195,7 @@ class _ShopScreenState extends State<ShopScreen> {
                               onSelected: (selected) {
                                 setState(() {
                                   selectedCategory = category;
+                                  _filterProducts();
                                 });
                               },
                               backgroundColor: Colors.white,
@@ -164,21 +223,39 @@ class _ShopScreenState extends State<ShopScreen> {
             // Product Grid
             SliverPadding(
               padding: const EdgeInsets.all(16),
-              sliver: SliverGrid(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  childAspectRatio: 0.7,
-                  mainAxisSpacing: 16,
-                  crossAxisSpacing: 16,
-                ),
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    final product = products[index];
-                    return _buildProductCard(product);
-                  },
-                  childCount: products.length,
-                ),
-              ),
+              sliver: _isLoading 
+                ? const SliverFillRemaining(
+                    child: Center(
+                      child: CircularProgressIndicator(),
+                    ),
+                  )
+                : _filteredProducts.isEmpty
+                  ? const SliverFillRemaining(
+                      child: Center(
+                        child: Text(
+                          'No products found',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ),
+                    )
+                  : SliverGrid(
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        childAspectRatio: 0.7,
+                        mainAxisSpacing: 16,
+                        crossAxisSpacing: 16,
+                      ),
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          final product = _filteredProducts[index];
+                          return _buildProductCard(product);
+                        },
+                        childCount: _filteredProducts.length,
+                      ),
+                    ),
             ),
           ],
         ),
@@ -240,7 +317,7 @@ class _ShopScreenState extends State<ShopScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Rp ${product.price.toStringAsFixed(0)}',
+                  'Rp ${NumberFormat('#,###', 'id_ID').format(product.price).replaceAll(',', '.')}',
                   style: const TextStyle(
                     color: Color(0xFF5C6BC0),
                     fontWeight: FontWeight.bold,
