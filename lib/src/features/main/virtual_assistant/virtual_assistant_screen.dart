@@ -11,12 +11,12 @@ class _VirtualAssistantScreenState extends State<VirtualAssistantScreen> {
   final TextEditingController _messageController = TextEditingController();
   final List<ChatMessage> _messages = [
     const ChatMessage(
-      text: "Hai! Saya adalah asisten virtual Anda. Saya bisa membantu Anda dengan:\n\n"
-          "• Rekomendasi skincare sesuai jenis kulit\n"
-          "• Informasi tentang fitur aplikasi\n"
-          "• Tips perawatan kulit\n"
-          "• Jawaban untuk pertanyaan umum\n\n"
-          "Apa yang ingin Anda tanyakan?",
+      text: "Hii! I'm your virtual assistant. I can help you with:\n\n"
+          "• Skincare recommendation based on skin type\n"
+          "• Information about app features\n"
+          "• Skin care tips\n"
+          "• Answers to common questions\n\n"
+          "What do you want to ask? 🤔",
       isUser: false,
     ),
   ];
@@ -92,7 +92,7 @@ class _VirtualAssistantScreenState extends State<VirtualAssistantScreen> {
                     child: TextField(
                       controller: _messageController,
                       decoration: const InputDecoration(
-                        hintText: 'Ketik pesan...',
+                        hintText: 'Type your message...',
                         border: InputBorder.none,
                       ),
                     ),
@@ -127,7 +127,7 @@ class _VirtualAssistantScreenState extends State<VirtualAssistantScreen> {
       ));
       // Simulasi respons asisten
       _messages.add(ChatMessage(
-        text: "Terima kasih atas pertanyaannya. Saya akan membantu Anda dengan informasi yang relevan.",
+        text: "Thank you for your question. I will help you with relevant information. 😉",
         isUser: false,
       ));
     });

@@ -4,6 +4,7 @@ import 'package:myapp/src/features/history/history_screen.dart';
 import 'package:myapp/src/features/profile/widgets/menu_item.dart';
 import 'package:myapp/src/features/welcome/enter_screen.dart';
 import 'package:myapp/src/features/profile/personal_information_screen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -15,12 +16,124 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   String firstName = 'First Name';
   String lastName = 'Last Name';
+  String email = '';
+  String phone = '';
   bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
+    _loadUserData();
+  }
 
+  Future<void> _loadUserData() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        final userData = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .get();
+
+        if (userData.exists) {
+          setState(() {
+            firstName = userData.data()?['firstName'] ?? 'First Name';
+            lastName = userData.data()?['lastName'] ?? 'Last Name';
+            email = user.email ?? '';
+            phone = userData.data()?['phone'] ?? '';
+            isLoading = false;
+          });
+        }
+      }
+    } catch (e){
+      print('Error load a user data: $e');
+    }
+  }
+
+  Widget _buildPersonalInfoCard() {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              const Color(0xFF7986CB).withOpacity(0.9),
+              const Color(0xFF5C6BC0),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(
+                      Icons.person_outline,
+                      color: Colors.white,
+                      size: 24,
+                    ),
+                  ),
+                  IconButton(
+                    icon: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(Icons.edit, color: Colors.white, size: 20),
+                    ),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const PersonalInformationScreen(),
+                        )
+                      ).then((_) => _loadUserData());
+                    },
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              _buildInfoRow(Icons.person_outline, '$firstName $lastName', true),
+              const SizedBox(height: 12),
+              _buildInfoRow(Icons.email_outlined, email, true),
+              const SizedBox(height: 12),
+              _buildInfoRow(Icons.phone_outlined, phone.isEmpty ? 'Add phone number' : phone, true),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(IconData icon, String text, bool isWhite) {
+    return Row(
+      children: [
+        Icon(icon, size: 20, color: isWhite ? Colors.white70 : Colors.grey[600]),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            text,
+            style: TextStyle(
+              fontSize: 16,
+              color: isWhite ? Colors.white : Colors.grey[800],
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
   Future<void> _signOut() async {
@@ -58,10 +171,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     child: Icon(
                       Icons.person_outline,
                       color: Colors.white,
+                      size: 48,
                     ),
                   ),
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: 24),
+                isLoading 
+                  ? const Center(child: CircularProgressIndicator())
+                  : _buildPersonalInfoCard(),
+                const SizedBox(height: 24),
                 MenuItem(
                   icon: Icons.person_outline,
                   title: 'Personal Information',
