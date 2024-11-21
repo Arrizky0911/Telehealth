@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:intl/intl.dart';
 import 'package:myapp/src/features/shop/product_detail_screen.dart';
+import 'cart_screen.dart';
 
 class Product {
   final String id;
@@ -32,6 +33,7 @@ class _ShopScreenState extends State<ShopScreen> {
   bool _isLoading = false;
   Timer? _debounce;
   List<Product> _filteredProducts = [];
+  int cartItemCount = 2;
 
   void _filterProducts() {
     setState(() => _isLoading = true);
@@ -126,9 +128,43 @@ class _ShopScreenState extends State<ShopScreen> {
                 ),
               ),
               actions: [
-                IconButton(
-                  icon: const Icon(Icons.shopping_cart_outlined),
-                  onPressed: () {},
+                Stack(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.shopping_cart_outlined),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const CartScreen()),
+                        );
+                      },
+                    ),
+                    if (cartItemCount > 0)
+                      Positioned(
+                        right: 8,
+                        top: 8,
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: const BoxDecoration(
+                            color: Color(0xFFFF4081),
+                            shape: BoxShape.circle,
+                          ),
+                          constraints: const BoxConstraints(
+                            minWidth: 16,
+                            minHeight: 16,
+                          ),
+                          child: Text(
+                            '$cartItemCount',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
               ],
               backgroundColor: Colors.white,

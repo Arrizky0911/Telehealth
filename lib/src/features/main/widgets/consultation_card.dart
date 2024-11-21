@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:myapp/src/features/tasks/tasks_screen.dart';
 import 'package:myapp/src/features/main/doctor/doctor_list_screen.dart';
 
 class VirtualConsultationsCard extends StatelessWidget {
