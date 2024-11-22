@@ -42,10 +42,11 @@ class _RegistrationScreenState extends State<RegisterScreen> {
             .collection('users')
             .doc(userCredential.user!.uid)
             .set({
+          'uid': userCredential.user!.uid,
+          'email': _emailController.text,
           'firstName': _firstNameController.text,
           'lastName': _lastNameController.text,
-          'email': _emailController.text,
-          'createdAt': FieldValue.serverTimestamp(),
+          'role': 'patient',
         });
 
         if (!mounted) return; 

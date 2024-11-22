@@ -1,17 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:myapp/src/features/main/doctor/consultation_payment_screen.dart';
+import 'package:myapp/src/models/doctor.dart';
 
 class DoctorDetailScreen extends StatelessWidget {
-  final String name;
-  final String rating;
-  final String specialty;
-  final String time;
+  final Doctor doctor;
 
   const DoctorDetailScreen({
     super.key,
-    required this.name,
-    required this.rating,
-    required this.specialty,
-    required this.time,
+    required this.doctor,
   });
 
   @override
@@ -34,7 +30,7 @@ class DoctorDetailScreen extends StatelessWidget {
                       radius: 50,
                       backgroundColor: Colors.white,
                       child: Text(
-                        name.substring(0, 2),
+                        doctor.name.substring(0, 2),
                         style: const TextStyle(
                           fontSize: 30,
                           color: Color(0xFF7986CB),
@@ -44,7 +40,7 @@ class DoctorDetailScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      name,
+                      doctor.name,
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 24,
@@ -62,13 +58,13 @@ class DoctorDetailScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildInfoSection(),
+                  _buildInfoSection(doctor),
                   const SizedBox(height: 24),
-                  _buildAboutSection(),
+                  _buildAboutSection(doctor),
                   const SizedBox(height: 24),
-                  _buildScheduleSection(),
+                  _buildScheduleSection(doctor),
                   const SizedBox(height: 24),
-                  _buildReviewsSection(),
+                  _buildReviewsSection(doctor),
                   const SizedBox(height: 32),
                 ],
               ),
@@ -87,36 +83,73 @@ class DoctorDetailScreen extends StatelessWidget {
             ),
           ],
         ),
-        child: ElevatedButton(
-          onPressed: () {
-            // TODO: Implement booking functionality
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF5C6BC0),
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+        child: Row(
+          children: [
+            Expanded(
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ConsultationPaymentScreen(
+                        doctorName: doctor.name,
+                        specialty: doctor.specialty,
+                        consultationFee: doctor.price.toDouble(),
+                      ),
+                    ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF5C6BC0),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: const Text(
+                  'Chat Consultation',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
             ),
-          ),
-          child: const Text(
-            'Book Appointment',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
+            const SizedBox(width: 12),
+            Expanded(
+              child: ElevatedButton(
+                onPressed: () {
+                  // TODO: Implement booking functionality
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF5C6BC0),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: const Text(
+                  'Book Appointment',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
             ),
-          ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildInfoSection() {
+  Widget _buildInfoSection(Doctor doctor) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
-        _buildInfoCard('Experience', '8+ years'),
-        _buildInfoCard('Rating', '$rating/5.0'),
-        _buildInfoCard('Reviews', '1.2k+'),
+        _buildInfoCard('Experience', doctor.experience),
+        _buildInfoCard('Rating', '${doctor.rating}/5.0'),
+        _buildInfoCard('Reviews', '${doctor.totalReviews}+'),
       ],
     );
   }
@@ -150,7 +183,7 @@ class DoctorDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildAboutSection() {
+  Widget _buildAboutSection(Doctor doctor) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -163,18 +196,50 @@ class DoctorDetailScreen extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         Text(
-          'Dr. $name is a highly skilled $specialty with extensive experience in treating various conditions. Specializing in providing comprehensive care with a patient-centered approach.',
+          doctor.about,
           style: TextStyle(
             fontSize: 14,
             color: Colors.grey[600],
             height: 1.5,
           ),
         ),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Icon(Icons.medical_services, color: Colors.grey[600], size: 20),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Specialty: ${doctor.specialty}',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey[600],
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Icon(Icons.attach_money, color: Colors.grey[600], size: 20),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Consultation Fee: Rp ${doctor.price}',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey[600],
+                ),
+              ),
+            ),
+          ],
+        ),
       ],
     );
   }
 
-  Widget _buildScheduleSection() {
+  Widget _buildScheduleSection(Doctor doctor) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -192,16 +257,40 @@ class DoctorDetailScreen extends StatelessWidget {
             color: Colors.grey[50],
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(Icons.access_time, color: Color(0xFF5C6BC0)),
-              const SizedBox(width: 12),
-              Text(
-                'Available at $time',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                ),
+              Row(
+                children: [
+                  const Icon(Icons.access_time, color: Color(0xFF5C6BC0)),
+                  const SizedBox(width: 12),
+                  const Text(
+                    'Available Times:',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: doctor.availableTimes.map((time) => Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF5C6BC0).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Text(
+                    time,
+                    style: const TextStyle(
+                      color: Color(0xFF5C6BC0),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                )).toList(),
               ),
             ],
           ),
@@ -210,7 +299,7 @@ class DoctorDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildReviewsSection() {
+  Widget _buildReviewsSection(Doctor doctor) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

@@ -36,6 +36,7 @@ class _CartScreenState extends State<CartScreen> {
     ),
   ];
 
+  // Price counter (price * quantity)
   double get _total => _cartItems.fold(
         0,
         (sum, item) => sum + (item.product.price * item.quantity),
@@ -57,8 +58,9 @@ class _CartScreenState extends State<CartScreen> {
         foregroundColor: Colors.black,
         elevation: 0,
       ),
+      // Cart empty message display
       body: _cartItems.isEmpty
-          ? const Center(
+          ? const Center( /*Empty cart message UI display */
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -76,6 +78,7 @@ class _CartScreenState extends State<CartScreen> {
             )
           : Column(
               children: [
+                // Scrollable list ofcart items
                 Expanded(
                   child: ListView.separated(
                     padding: const EdgeInsets.all(16),
@@ -87,6 +90,7 @@ class _CartScreenState extends State<CartScreen> {
                     },
                   ),
                 ),
+                // Checkout section at bottom of screen
                 _buildCheckoutSection(),
               ],
             ),

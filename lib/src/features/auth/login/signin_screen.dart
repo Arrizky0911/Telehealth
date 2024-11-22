@@ -7,6 +7,9 @@ import 'package:myapp/src/common_widgets/form_layout.dart';
 import 'package:myapp/src/features/auth/login/forgot_password.dart';
 import 'package:myapp/src/features/auth/register/register_screen.dart';
 import 'package:myapp/src/features/main/main_screen.dart';
+import 'package:myapp/src/features/main/doctor/doctor_home_screen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:myapp/src/features/admin/admin_screen.dart';
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
@@ -21,44 +24,57 @@ class _LoginScreenState extends State<SignInScreen> {
   final _passwordController = TextEditingController();
   bool _isLoading = false;
 
-  Future<void> _signIn() async {
-    if (_formKey.currentState!.validate()) {
-      setState(() {
-        _isLoading = true;
-      });
+  Future<void> _login() async {
+    if (!_formKey.currentState!.validate()) return;
+    
+    try {
+      setState(() => _isLoading = true);
       
-      try {
-        await FirebaseAuth.instance.signInWithEmailAndPassword(
-          email: _emailController.text,
-          password: _passwordController.text,
-        );
+      final userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+      );
 
-        if (!mounted) return; 
+      if (!mounted) return;
+
+      // Check if doctor
+      final doctorDoc = await FirebaseFirestore.instance
+          .collection('doctors')
+          .doc(userCredential.user?.uid)
+          .get();
+
+      if (doctorDoc.exists) {
+        await doctorDoc.reference.update({'isOnline': true});
+        if (!mounted) return;
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const MainScreen()),
+          MaterialPageRoute(builder: (_) => const DoctorHomeScreen()),
         );
-      } on FirebaseAuthException catch (e) {
-        String errorMessage;
-        if (e.code == 'user-not-found') {
-          errorMessage = 'No user found for that email.';
-        } else if (e.code == 'wrong-password') {
-          errorMessage = 'Wrong password provided for that user.';
-        } else {
-          errorMessage = 'An error occurred. Please try again.';
-        }
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(errorMessage)),
-        );
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('An error occurred. Please try again.')),
-        );
-      } finally {
-        setState(() {
-          _isLoading = false;
-        });
+        return;
       }
+
+      // Check user role
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userCredential.user?.uid)
+          .get();
+      
+      final userData = userDoc.data();
+      if (userData?['role'] == 'admin') {
+        if (!mounted) return;
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const AdminScreen()),
+        );
+      } else {
+        if (!mounted) return;
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const MainScreen()),
+        );
+      }
+    } catch (e) {
+      // Error handling
     }
   }
 
@@ -177,7 +193,7 @@ class _LoginScreenState extends State<SignInScreen> {
                       ? const CircularProgressIndicator()
                       : RoundButton(
                           label: 'Sign In',
-                          onPressed: _signIn,
+                          onPressed: _login,
                           color: const Color(0xFF4B5BA6),
                         ),
                 )),

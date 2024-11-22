@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:myapp/src/features/main/doctor/doctor_detail_screen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:myapp/src/models/doctor.dart';
 
 class DoctorListScreen extends StatefulWidget {
   const DoctorListScreen({super.key});
@@ -9,98 +11,21 @@ class DoctorListScreen extends StatefulWidget {
 }
 
 class _DoctorListScreenState extends State<DoctorListScreen> {
-  final List<Map<String, String>> doctors = [
-    {
-      'name': 'Dr. Hannibal Lectore',
-      'rating': '4.0',
-      'specialty': 'Neurologist',
-      'time': '9:00 AM - 10:00 AM'
-    },
-    {
-      'name': 'Dr. Johann Liebert',
-      'rating': '4.1',
-      'specialty': 'Pediatrician',
-      'time': '10:00 AM - 11:00 AM'
-    },
-    {
-      'name': 'Dr. Emily Rodriguez',
-      'rating': '4.0',
-      'specialty': 'Pediatrician',
-      'time': '11:00 AM - 12:00 PM'
-    },
-    {
-      'name': 'Dr. James Wilson',
-      'rating': '4.1',
-      'specialty': 'Neurologist',
-      'time': '12:00 PM - 1:00 PM'
-    },
-    {
-      'name': 'Dr. Lisa Kim',
-      'rating': '4.0',
-      'specialty': 'Pediatrician',
-      'time': '1:00 PM - 2:00 PM'
-    },
-    {
-      'name': 'Dr. David Patel',
-      'rating': '4.1',
-      'specialty': 'Orthopedics',
-      'time': '2:00 PM - 3:00 PM'
-    },
-    {
-      'name': 'Dr. Maria Garcia',
-      'rating': '4.0',
-      'specialty': 'Cardiologist',
-      'time': '3:00 PM - 4:00 PM'
-    },
-    {
-      'name': 'Dr. Robert Lee',
-      'rating': '4.1',
-      'specialty': 'Orthopedics',
-      'time': '4:00 PM - 5:00 PM'
-    },
-    {
-      'name': 'Dr. Amanda Taylor',
-      'rating': '4.0',
-      'specialty': 'Cardiologist',
-      'time': '5:00 PM - 6:00 PM'
-    },
-    {
-      'name': 'Dr. Thomas Brown',
-      'rating': '4.1',
-      'specialty': 'Orthopedics',
-      'time': '6:00 PM - 7:00 PM'
-    },
-  ];
-
-  List<Map<String, String>> filteredDoctors = [];
+  List<Doctor> filteredDoctors = [];
   final TextEditingController _searchController = TextEditingController();
   String selectedSpecialty = 'All';
 
   @override
   void initState() {
     super.initState();
-    filteredDoctors = doctors;
     _searchController.addListener(_onSearchChanged);
   }
 
   void _onSearchChanged() {
     final query = _searchController.text.toLowerCase();
     setState(() {
-      filteredDoctors = doctors.where((doctor) {
-        final name = doctor['name']!.toLowerCase();
-        final specialty = doctor['specialty']!.toLowerCase();
-        final matchesSearch = name.contains(query) || specialty.contains(query);
-        final matchesFilter = selectedSpecialty == 'All' || 
-                            doctor['specialty'] == selectedSpecialty;
-        return matchesSearch && matchesFilter;
-      }).toList();
+      // Filter akan dihandle oleh StreamBuilder
     });
-  }
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
   }
 
   @override
@@ -108,7 +33,6 @@ class _DoctorListScreenState extends State<DoctorListScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
-        // Wrap everything with SafeArea
         child: CustomScrollView(
           slivers: [
             SliverAppBar(
@@ -126,47 +50,67 @@ class _DoctorListScreenState extends State<DoctorListScreen> {
                 child: Container(
                   color: Colors.white,
                   child: Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                     child: Column(
-                      mainAxisSize: MainAxisSize
-                          .min, 
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        Flexible(
-                            child:
-                                _buildSearchBar()), // Add Flexible for dynamic sizing
+                        Flexible(child: _buildSearchBar()),
                         const SizedBox(height: 8),
-                        Flexible(
-                            child:
-                                _buildFilterChips()), // Add Flexible for filter chips
+                        Flexible(child: _buildFilterChips()),
                       ],
                     ),
                   ),
                 ),
               ),
             ),
-            SliverPadding(
-              padding: const EdgeInsets.all(16),
-              sliver: SliverGrid(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  mainAxisSpacing: 16,
-                  crossAxisSpacing: 16,
-                  childAspectRatio: 0.8, // Sesuaikan rasio sesuai kebutuhan
-                ),
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    final doctor = filteredDoctors[index];
-                    return _buildDoctorCard(
-                      doctor['name']!,
-                      doctor['rating']!,
-                      doctor['specialty']!,
-                      doctor['time']!,
-                    );
-                  },
-                  childCount: filteredDoctors.length,
-                ),
-              ),
+            StreamBuilder<List<Doctor>>(
+              stream: getDoctors(),
+              builder: (context, snapshot) {
+                if (snapshot.hasError) {
+                  return SliverToBoxAdapter(
+                    child: Center(child: Text('Error: ${snapshot.error}')),
+                  );
+                }
+
+                if (!snapshot.hasData) {
+                  return const SliverToBoxAdapter(
+                    child: Center(child: CircularProgressIndicator()),
+                  );
+                }
+
+                final doctors = snapshot.data!;
+                final filtered = doctors.where((doctor) {
+                  final name = doctor.name.toLowerCase();
+                  final specialty = doctor.specialty.toLowerCase();
+                  final query = _searchController.text.toLowerCase();
+                  
+                  final matchesSearch = name.contains(query) || 
+                                      specialty.contains(query);
+                  final matchesFilter = selectedSpecialty == 'All' || 
+                                      doctor.specialty == selectedSpecialty;
+                  
+                  return matchesSearch && matchesFilter;
+                }).toList();
+
+                return SliverPadding(
+                  padding: const EdgeInsets.all(16),
+                  sliver: SliverGrid(
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      mainAxisSpacing: 16,
+                      crossAxisSpacing: 16,
+                      childAspectRatio: 0.8,
+                    ),
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        final doctor = filtered[index];
+                        return _buildDoctorCard(doctor);
+                      },
+                      childCount: filtered.length,
+                    ),
+                  ),
+                );
+              },
             ),
           ],
         ),
@@ -246,19 +190,13 @@ class _DoctorListScreenState extends State<DoctorListScreen> {
     );
   }
 
-  Widget _buildDoctorCard(
-      String name, String rating, String specialty, String time) {
+  Widget _buildDoctorCard(Doctor doctor) {
     return InkWell(
       onTap: () {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => DoctorDetailScreen(
-              name: name,
-              rating: rating,
-              specialty: specialty,
-              time: time,
-            ),
+            builder: (context) => DoctorDetailScreen(doctor: doctor),
           ),
         );
       },
@@ -283,13 +221,13 @@ class _DoctorListScreenState extends State<DoctorListScreen> {
               radius: 35,
               backgroundColor: const Color(0xFF7986CB),
               child: Text(
-                name.substring(0, 2),
+                doctor.name.substring(0, 2),
                 style: const TextStyle(color: Colors.white, fontSize: 20),
               ),
             ),
             const SizedBox(height: 12),
             Text(
-              name,
+              doctor.name,
               textAlign: TextAlign.center,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
@@ -304,23 +242,35 @@ class _DoctorListScreenState extends State<DoctorListScreen> {
               children: [
                 const Icon(Icons.star, color: Colors.amber, size: 16),
                 const SizedBox(width: 4),
-                Text(rating, style: const TextStyle(fontSize: 12)),
+                Text(doctor.rating.toString(), style: const TextStyle(fontSize: 12)),
               ],
             ),
             const SizedBox(height: 4),
             Text(
-              specialty,
+              doctor.specialty,
               style: const TextStyle(color: Colors.grey, fontSize: 12),
             ),
             const SizedBox(height: 4),
             Text(
-              time,
+              doctor.availableTimes.isNotEmpty 
+                  ? doctor.availableTimes.first 
+                  : 'No available time',
               style: const TextStyle(color: Colors.grey, fontSize: 12),
             ),
           ],
         ),
       ),
     );
+  }
+
+  Stream<List<Doctor>> getDoctors() {
+    return FirebaseFirestore.instance
+      .collection('doctors')
+      .where('isActive', isEqualTo: true)
+      .snapshots()
+      .map((snapshot) => snapshot.docs
+          .map((doc) => Doctor.fromMap(doc.data()))
+          .toList());
   }
 }
 
