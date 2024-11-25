@@ -78,6 +78,53 @@ class _ShopScreenState extends State<ShopScreen> {
     });
   }
 
+  Future<void> _addToCart(Product product) async {
+    setState(() => _isLoading = true);
+    
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please login to add items to cart')),
+        );
+        return;
+      }
+
+      final cartRef = FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .collection('cart')
+          .doc(product.id);
+
+      final cartDoc = await cartRef.get();
+      
+      if (cartDoc.exists) {
+        // Update quantity if item exists
+        final currentQuantity = cartDoc.data()?['quantity'] as int;
+        await cartRef.update({'quantity': currentQuantity + 1});
+      } else {
+        // Add new item if doesn't exist
+        await cartRef.set({
+          'productId': product.id,
+          'quantity': 1,
+        });
+      }
+
+      setState(() => cartItemCount++);
+      
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Added to cart')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -368,7 +415,7 @@ class _ShopScreenState extends State<ShopScreen> {
                     width: double.infinity,
                     height: 32,
                     child: ElevatedButton(
-                      onPressed: () {},
+                      onPressed: () => _addToCart(product),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF5C6BC0),
                         foregroundColor: Colors.white,
@@ -377,10 +424,19 @@ class _ShopScreenState extends State<ShopScreen> {
                         ),
                         padding: EdgeInsets.zero,
                       ),
-                      child: const Text(
-                        'Add to Cart',
-                        style: TextStyle(fontSize: 12),
-                      ),
+                      child: _isLoading 
+                        ? const SizedBox(
+                            height: 12,
+                            width: 12,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            ),
+                          )
+                        : const Text(
+                            'Add to Cart',
+                            style: TextStyle(fontSize: 12),
+                          ),
                     ),
                   ),
                 ],

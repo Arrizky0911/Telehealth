@@ -2,14 +2,65 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:myapp/src/models/product.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
-class ProductDetailScreen extends StatelessWidget {
+class ProductDetailScreen extends StatefulWidget {
   final String productId;
   
   const ProductDetailScreen({
     super.key,
     required this.productId,
   });
+
+  @override
+  State<ProductDetailScreen> createState() => _ProductDetailScreenState();
+}
+
+class _ProductDetailScreenState extends State<ProductDetailScreen> {
+  bool _isLoading = false;
+
+  Future<void> _addToCart(Product product) async {
+    setState(() => _isLoading = true);
+    
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please login to add items to cart')),
+        );
+        return;
+      }
+
+      final cartRef = FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .collection('cart')
+          .doc(product.id);
+
+      final cartDoc = await cartRef.get();
+      
+      if (cartDoc.exists) {
+        final currentQuantity = cartDoc.data()?['quantity'] as int;
+        await cartRef.update({'quantity': currentQuantity + 1});
+      } else {
+        await cartRef.set({
+          'productId': product.id,
+          'quantity': 1,
+        });
+      }
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Added to cart')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
 
   @override 
   Widget build(BuildContext context) {
@@ -34,7 +85,7 @@ class ProductDetailScreen extends StatelessWidget {
       body: StreamBuilder<DocumentSnapshot>(
         stream: FirebaseFirestore.instance
             .collection('products')
-            .doc(productId)
+            .doc(widget.productId)
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
@@ -49,9 +100,9 @@ class ProductDetailScreen extends StatelessWidget {
             return const Center(child: Text('Product not found'));
           }
 
-          final product = Product.fromMap(
-            snapshot.data!.data() as Map<String, dynamic>
-          );
+          final data = snapshot.data!.data() as Map<String, dynamic>;
+          data['id'] = widget.productId;
+          final product = Product.fromMap(data);
 
           return SingleChildScrollView(
             child: Column(
@@ -171,28 +222,58 @@ class ProductDetailScreen extends StatelessWidget {
           );
         },
       ),
-      bottomNavigationBar: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
+      bottomNavigationBar: StreamBuilder<DocumentSnapshot>(
+        stream: FirebaseFirestore.instance
+            .collection('products')
+            .doc(widget.productId)
+            .snapshots(),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData || !snapshot.data!.exists) return const SizedBox();
+
+          final data = snapshot.data!.data() as Map<String, dynamic>;
+          data['id'] = widget.productId;
+          final product = Product.fromMap(data);
+
+          return Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 10,
+                ),
+              ],
             ),
-          ],
-        ),
-        child: ElevatedButton(
-          onPressed: () {},
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF5C6BC0),
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+            child: ElevatedButton(
+              onPressed: _isLoading ? null : () => _addToCart(product),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF5C6BC0),
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: _isLoading
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  : const Text(
+                      'Add to Cart',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
             ),
-          ),
-          child: const Text('Add to Cart'),
-        ),
+          );
+        },
       ),
     );
   }

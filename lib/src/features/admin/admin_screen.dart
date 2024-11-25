@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:myapp/src/features/admin/add_doctor_screen.dart';
-// import 'package:myapp/src/features/admin/patient_list_screen.dart';
-// import 'package:myapp/src/features/admin/shop_items_screen.dart';
+import 'package:myapp/src/features/admin/add_product_screen.dart';
 import 'package:myapp/src/features/auth/login/signin_method.dart';
 
 class AdminScreen extends StatelessWidget {
@@ -98,6 +97,11 @@ class AdminScreen extends StatelessWidget {
       onTap = () => Navigator.push(
         context,
         MaterialPageRoute(builder: (_) => const AddDoctorScreen()),
+      );
+    } else if (title == 'Shop Items') {
+      onTap = () => Navigator.push(
+        context, 
+        MaterialPageRoute(builder: (_) => const AddProductScreen()),
       );
     }
 
