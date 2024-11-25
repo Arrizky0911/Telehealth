@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:myapp/src/features/main/doctor/chat_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class ConsultationPaymentScreen extends StatelessWidget {
+  final String doctorId;
   final String doctorName;
   final String specialty;
   final double consultationFee;
 
   const ConsultationPaymentScreen({
     super.key,
+    required this.doctorId,
     required this.doctorName,
     required this.specialty,
     required this.consultationFee,
@@ -92,9 +95,10 @@ class ConsultationPaymentScreen extends StatelessWidget {
               context,
               MaterialPageRoute(
                 builder: (context) => ChatScreen(
-                  doctorId: 'doctor-id',
+                  doctorId: doctorId,
                   doctorName: doctorName,
                   specialty: specialty,
+                  chatRoomId: '${FirebaseAuth.instance.currentUser!.uid}_$doctorId',
                 ),
               ),
             );

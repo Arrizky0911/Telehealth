@@ -92,6 +92,7 @@ class DoctorDetailScreen extends StatelessWidget {
                     context,
                     MaterialPageRoute(
                       builder: (context) => ConsultationPaymentScreen(
+                        doctorId: doctor.uid,
                         doctorName: doctor.name,
                         specialty: doctor.specialty,
                         consultationFee: doctor.price.toDouble(),

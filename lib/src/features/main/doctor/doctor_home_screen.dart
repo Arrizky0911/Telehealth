@@ -15,7 +15,7 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
 
   Future<void> _logout() async {
     try {
-      // Update status offline
+      // Update offline status
       await FirebaseFirestore.instance
           .collection('doctors')
           .doc(user?.uid)
@@ -97,22 +97,22 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
                 leading: CircleAvatar(
                   backgroundColor: const Color(0xFF7986CB),
                   child: Text(
-                    chat['patientName'].substring(0, 2).toUpperCase(),
+                    chat['patientName']?.substring(0, 2).toUpperCase() ?? '',
                     style: const TextStyle(color: Colors.white),
                   ),
                 ),
-                title: Text(chat['patientName']),
-                subtitle: Text(chat['lastMessage']),
+                title: Text(chat['patientName'] ?? 'Unknown'),
+                subtitle: Text(chat['lastMessage'] ?? ''),
                 trailing: chat['unreadCount'] > 0
-                    ? CircleAvatar(
-                        radius: 12,
-                        backgroundColor: Colors.red,
+                    ? Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: const BoxDecoration(
+                          color: Colors.red,
+                          shape: BoxShape.circle,
+                        ),
                         child: Text(
-                          chat['unreadCount'].toString(),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                          ),
+                          '${chat['unreadCount']}',
+                          style: const TextStyle(color: Colors.white),
                         ),
                       )
                     : null,
@@ -120,10 +120,11 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => ChatScreen(
-                        doctorId: user!.uid,
+                      builder: (context) => ChatScreen(
+                        doctorId: chat['doctorId'],
                         doctorName: chat['doctorName'],
                         specialty: chat['specialty'],
+                        chatRoomId: chat['chatRoomId'],
                       ),
                     ),
                   );
