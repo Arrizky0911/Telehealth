@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'shop_screen.dart';
 import 'product_detail_screen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
 
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
@@ -11,30 +14,73 @@ class CartScreen extends StatefulWidget {
 }
 
 class _CartScreenState extends State<CartScreen> {
-  final List<CartItem> _cartItems = [
-    CartItem(
-      product: Product(
-        id: '1',
-        name: 'Gentle Facial Wash',
-        price: 150000,
-        imageUrl: 'https://example.com/facial-wash.jpg',
-        description: 'Gentle facial wash for daily use',
-        category: 'Cleanser',
-      ),
-      quantity: 1,
-    ),
-    CartItem(
-      product: Product(
-        id: '2',
-        name: 'Hydrating Moisturizer',
-        price: 200000,
-        imageUrl: 'https://example.com/moisturizer.jpg',
-        description: 'Deep hydration for all skin types',
-        category: 'Moisturizer',
-      ),
-      quantity: 2,
-    ),
-  ];
+  List<CartItem> _cartItems = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCartItems();
+  }
+
+  Future<void> _loadCartItems() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final cartSnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .collection('cart')
+          .get();
+
+      final List<CartItem> items = [];
+      for (var doc in cartSnapshot.docs) {
+        final data = doc.data();
+        final productSnapshot = await FirebaseFirestore.instance
+            .collection('products')
+            .doc(data['productId'] as String)
+            .get();
+
+        if (productSnapshot.exists) {
+          final productData = productSnapshot.data()!;
+          productData['id'] = productSnapshot.id;
+          items.add(CartItem(
+            product: Product.fromMap(productData),
+            quantity: data['quantity'] as int,
+          ));
+        }
+      }
+
+      setState(() => _cartItems = items);
+    }
+  }
+
+  Future<void> _updateCartItem(CartItem item) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .collection('cart')
+          .doc(item.product.id)
+          .set({
+        'productId': item.product.id,
+        'quantity': item.quantity,
+      });
+    }
+  }
+
+  Future<void> _removeCartItem(CartItem item) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .collection('cart')
+          .doc(item.product.id)
+          .delete();
+      
+      setState(() => _cartItems.remove(item));
+    }
+  }
 
   // Price counter (price * quantity)
   double get _total => _cartItems.fold(
@@ -103,7 +149,7 @@ class _CartScreenState extends State<CartScreen> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => ProductDetailScreen(product: item.product),
+            builder: (context) => ProductDetailScreen(productId: item.product.id),
           ),
         );
       },
@@ -169,14 +215,13 @@ class _CartScreenState extends State<CartScreen> {
             Row(
               children: [
                 IconButton(
-                  onPressed: () {
-                    setState(() {
-                      if (item.quantity > 1) {
-                        item.quantity--;
-                      } else {
-                        _cartItems.remove(item);
-                      }
-                    });
+                  onPressed: () async {
+                    if (item.quantity > 1) {
+                      setState(() => item.quantity--);
+                      await _updateCartItem(item);
+                    } else {
+                      await _removeCartItem(item);
+                    }
                   },
                   icon: const Icon(Icons.remove_circle_outline),
                   color: Colors.grey,
@@ -189,10 +234,9 @@ class _CartScreenState extends State<CartScreen> {
                   ),
                 ),
                 IconButton(
-                  onPressed: () {
-                    setState(() {
-                      item.quantity++;
-                    });
+                  onPressed: () async {
+                    setState(() => item.quantity++);
+                    await _updateCartItem(item);
                   },
                   icon: const Icon(Icons.add_circle_outline),
                   color: const Color(0xFF5C6BC0),

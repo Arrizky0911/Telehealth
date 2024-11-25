@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:intl/intl.dart';
 import 'package:myapp/src/features/shop/product_detail_screen.dart';
 import 'cart_screen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class Product {
   final String id;
@@ -20,6 +22,17 @@ class Product {
     required this.description,
     required this.category,
   });
+
+  factory Product.fromMap(Map<String, dynamic> data) {
+    return Product(
+      id: data['id'],
+      name: data['name'],
+      price: data['price'],
+      imageUrl: data['imageUrl'],
+      description: data['description'],
+      category: data['category'],
+    );
+  }
 }
 
 class ShopScreen extends StatefulWidget {
@@ -32,81 +45,37 @@ class ShopScreen extends StatefulWidget {
 class _ShopScreenState extends State<ShopScreen> {
   bool _isLoading = false;
   Timer? _debounce;
-  List<Product> _filteredProducts = [];
-  int cartItemCount = 2;
-
-  void _filterProducts() {
-    setState(() => _isLoading = true);
-    
-    _filteredProducts = products.where((product) {
-      final matchesSearch = product.name.toLowerCase().contains(
-        _searchController.text.toLowerCase(),
-      );
-      final matchesCategory = selectedCategory == 'All' || 
-                           product.category == selectedCategory;
-      return matchesSearch && matchesCategory;
-    }).toList();
-    
-    setState(() => _isLoading = false);
-  }
-
-  final List<Product> products = [
-    Product(
-      id: '1',
-      name: 'Gentle Facial Wash',
-      price: 150000,
-      imageUrl: 'https://example.com/facial-wash.jpg',
-      description: 'Gentle facial wash for daily use',
-      category: 'Cleanser',
-    ),
-    Product(
-      id: '2',
-      name: 'Hydrating Moisturizer',
-      price: 200000,
-      imageUrl: 'https://example.com/moisturizer.jpg',
-      description: 'Deep hydration for all skin types',
-      category: 'Moisturizer',
-    ),
-  ];
-
   String selectedCategory = 'All';
   final TextEditingController _searchController = TextEditingController();
-
-  List<Product> get filteredProducts {
-    setState(() => _isLoading = true);
-
-    final filtered = products.where((product) {
-      final matchesSearch = product.name.toLowerCase().contains(
-        _searchController.text.toLowerCase(),
-      );
-      final matchesCategory = selectedCategory == 'All' ||
-                              product.category == selectedCategory;
-      return matchesSearch && matchesCategory;
-    }).toList();
-
-    setState(() => _isLoading = false);
-    return filtered;
-  }
+  int cartItemCount = 0;
 
   @override
   void initState() {
     super.initState();
-    _filterProducts(); // Initial filter
     _searchController.addListener(_onSearchChanged);
+    _loadCartCount();
+  }
+
+  Future<void> _loadCartCount() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final cartSnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .collection('cart')
+          .get();
+      
+      setState(() {
+        cartItemCount = cartSnapshot.docs.length;
+      });
+    }
   }
 
   void _onSearchChanged() {
     if (_debounce?.isActive ?? false) _debounce!.cancel();
     _debounce = Timer(const Duration(milliseconds: 500), () {
-      _filterProducts();
+      setState(() {});
     });
-  }
-
-  @override
-  void dispose() {
-    _debounce?.cancel();
-    _searchController.dispose();
-    super.dispose();
   }
 
   @override
@@ -232,7 +201,6 @@ class _ShopScreenState extends State<ShopScreen> {
                               onSelected: (selected) {
                                 setState(() {
                                   selectedCategory = category;
-                                  _filterProducts();
                                 });
                               },
                               backgroundColor: Colors.white,
@@ -260,14 +228,38 @@ class _ShopScreenState extends State<ShopScreen> {
             // Product Grid
             SliverPadding(
               padding: const EdgeInsets.all(16),
-              sliver: _isLoading 
-                ? const SliverFillRemaining(
-                    child: Center(
-                      child: CircularProgressIndicator(),
-                    ),
-                  )
-                : _filteredProducts.isEmpty
-                  ? const SliverFillRemaining(
+              sliver: StreamBuilder<QuerySnapshot>(
+                stream: FirebaseFirestore.instance
+                    .collection('products')
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (snapshot.hasError) {
+                    return const SliverFillRemaining(
+                      child: Center(child: Text('Something went wrong')),
+                    );
+                  }
+
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const SliverFillRemaining(
+                      child: Center(child: CircularProgressIndicator()),
+                    );
+                  }
+
+                  final products = snapshot.data!.docs.map((doc) {
+                    final data = doc.data() as Map<String, dynamic>;
+                    data['id'] = doc.id; // Tambahkan document ID ke data
+                    return Product.fromMap(data);
+                  }).where((product) {
+                    final matchesSearch = product.name.toLowerCase().contains(
+                      _searchController.text.toLowerCase(),
+                    );
+                    final matchesCategory = selectedCategory == 'All' ||
+                        product.category == selectedCategory;
+                    return matchesSearch && matchesCategory;
+                  }).toList();
+
+                  if (products.isEmpty) {
+                    return const SliverFillRemaining(
                       child: Center(
                         child: Text(
                           'No products found',
@@ -277,22 +269,23 @@ class _ShopScreenState extends State<ShopScreen> {
                           ),
                         ),
                       ),
-                    )
-                  : SliverGrid(
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        childAspectRatio: 0.7,
-                        mainAxisSpacing: 16,
-                        crossAxisSpacing: 16,
-                      ),
-                      delegate: SliverChildBuilderDelegate(
-                        (context, index) {
-                          final product = _filteredProducts[index];
-                          return _buildProductCard(product);
-                        },
-                        childCount: _filteredProducts.length,
-                      ),
+                    );
+                  }
+
+                  return SliverGrid(
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      childAspectRatio: 0.7,
+                      mainAxisSpacing: 16,
+                      crossAxisSpacing: 16,
                     ),
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) => _buildProductCard(products[index]),
+                      childCount: products.length,
+                    ),
+                  );
+                },
+              ),
             ),
           ],
         ),
@@ -306,7 +299,7 @@ class _ShopScreenState extends State<ShopScreen> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => ProductDetailScreen(product: product),
+            builder: (context) => ProductDetailScreen(productId: product.id),
           ),
         );
       },
