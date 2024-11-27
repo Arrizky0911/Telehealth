@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:myapp/src/constants/firebase_options.dart';
 import 'package:myapp/src/features/welcome/enter_screen.dart';
 
+
 void main() async  {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
