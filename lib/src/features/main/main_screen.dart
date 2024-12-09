@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:myapp/src/features/doctor/doctor_list_screen.dart';
 import 'package:myapp/src/features/profile/profile_screens.dart';
 import 'package:myapp/src/features/tasks/tasks_screen.dart';
 import 'package:myapp/src/features/main/home/home.dart';
-import 'package:myapp/src/features/shop/shop_screen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -36,12 +36,12 @@ class _MainScreenState extends State<MainScreen> {
           NavigationDestination(
             selectedIcon: Icon(Icons.check_box),
             icon: Icon(Icons.check_box_outlined),
-            label: 'Tasks',
+            label: 'Consultation',
           ),
           NavigationDestination(
-            selectedIcon: Icon(Icons.shopping_bag),
-            icon: Icon(Icons.shopping_bag_outlined),
-            label: 'Shop',
+            selectedIcon: Icon(Icons.check_box),
+            icon: Icon(Icons.check_box_outlined),
+            label: 'Tasks',
           ),
           NavigationDestination(
             selectedIcon: Icon(Icons.person_2_rounded),
@@ -52,8 +52,8 @@ class _MainScreenState extends State<MainScreen> {
       ),
       body: <Widget>[
         const HomeScreen(),
+        const DoctorListScreen(),
         const TasksScreen(),
-        const ShopScreen(),
         const ProfileScreen()
       ][currentPageIndex],
     );

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:myapp/src/features/main/chat/chat_screen.dart';
+import 'package:myapp/src/features/doctor/chat/chat_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class ConsultationPaymentScreen extends StatelessWidget {

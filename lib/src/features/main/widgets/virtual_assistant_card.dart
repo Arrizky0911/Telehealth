@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:myapp/src/features/main/virtual_assistant/virtual_assistant_screen.dart';
+import 'package:myapp/src/features/virtual_assistant/virtual_assistant_screen.dart';
 
 class VirtualAssistantCard extends StatelessWidget {
   const VirtualAssistantCard({super.key});
@@ -24,8 +24,8 @@ class VirtualAssistantCard extends StatelessWidget {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                const Color(0xFF7986CB).withOpacity(0.9),
-                const Color(0xFF5C6BC0),
+                const Color(0xFFFF4081).withOpacity(0.9),
+                const Color(0xFFFF4081),
               ],
             ),
             borderRadius: BorderRadius.circular(16),
@@ -107,14 +107,14 @@ class VirtualAssistantCard extends StatelessWidget {
                     Text(
                       'Ask Assistant',
                       style: TextStyle(
-                        color: Color(0xFF5C6BC0),
+                        color: Color(0xFFFF4081),
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                     SizedBox(width: 8),
                     Icon(
                       Icons.arrow_forward,
-                      color: Color(0xFF5C6BC0),
+                      color: Color(0xFFFF4081),
                       size: 18,
                     ),
                   ],

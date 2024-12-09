@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:myapp/src/features/main/doctor/doctor_list_screen.dart';
+import 'package:myapp/src/features/doctor/doctor_list_screen.dart';
 import 'package:myapp/src/models/doctor.dart';
-import 'package:myapp/src/features/main/doctor/doctor_detail_screen.dart';
+import 'package:myapp/src/features/doctor/doctor_detail_screen.dart';
 
 class VirtualConsultationsCard extends StatelessWidget {
   const VirtualConsultationsCard({super.key});
@@ -77,7 +77,7 @@ class VirtualConsultationsCard extends StatelessWidget {
                       ...doctors.map((doctor) => Padding(
                         padding: const EdgeInsets.only(bottom: 10),
                         child: _buildDoctorCard(doctor, context),
-                      )).toList(),
+                      )),
                     const SizedBox(height: 10),
                     TextButton(
                       onPressed: () {

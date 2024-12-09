@@ -10,7 +10,7 @@ class HistoryScreen extends StatefulWidget {
 
 class _HistoryScreenState extends State<HistoryScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  
+
   @override
   void initState() {
     super.initState();
@@ -33,7 +33,7 @@ class _HistoryScreenState extends State<HistoryScreen> with SingleTickerProvider
           controller: _tabController,
           tabs: const [
             Tab(text: 'Consultations'),
-            Tab(text: 'Skin Check'),
+            Tab(text: 'Purchase'),
           ],
           labelColor: const Color(0xFF5C6BC0),
           unselectedLabelColor: Colors.grey,
@@ -87,12 +87,12 @@ class ConsultationHistoryTab extends StatelessWidget {
                     Row(
                       children: [
                         // Doctor Avatar
-                        CircleAvatar(
+                        const CircleAvatar(
                           radius: 24,
-                          backgroundColor: const Color(0xFF7986CB),
+                          backgroundColor: Color(0xFF7986CB),
                           child: Text(
                             'DH',
-                            style: const TextStyle(color: Colors.white),
+                            style: TextStyle(color: Colors.white),
                           ),
                         ),
                         const SizedBox(width: 12),

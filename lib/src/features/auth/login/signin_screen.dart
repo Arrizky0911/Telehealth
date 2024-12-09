@@ -7,7 +7,7 @@ import 'package:myapp/src/common_widgets/form_layout.dart';
 import 'package:myapp/src/features/auth/login/forgot_password.dart';
 import 'package:myapp/src/features/auth/register/register_screen.dart';
 import 'package:myapp/src/features/main/main_screen.dart';
-import 'package:myapp/src/features/main/doctor/doctor_home_screen.dart';
+import 'package:myapp/src/features/doctor/doctor_home_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:myapp/src/features/admin/admin_screen.dart';
 

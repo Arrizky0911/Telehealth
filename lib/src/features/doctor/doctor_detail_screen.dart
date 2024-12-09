@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:myapp/src/features/main/doctor/consultation_payment_screen.dart';
+import 'package:myapp/src/features/doctor/consultation_payment_screen.dart';
 import 'package:myapp/src/models/doctor.dart';
 
 class DoctorDetailScreen extends StatelessWidget {

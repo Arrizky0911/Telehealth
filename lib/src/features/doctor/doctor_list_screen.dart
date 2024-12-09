@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:myapp/src/features/main/doctor/doctor_detail_screen.dart';
+import 'package:myapp/src/features/doctor/doctor_detail_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:myapp/src/models/doctor.dart';
 

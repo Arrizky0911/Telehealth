@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:myapp/src/features/main/widgets/consultation_card.dart';
 import 'package:myapp/src/features/main/widgets/health_cards.dart';
+import 'package:myapp/src/features/main/widgets/pharmacy_card.dart';
 import 'package:myapp/src/features/main/widgets/skin_check_card.dart';
 import 'package:myapp/src/features/main/widgets/virtual_assistant_card.dart';
 
@@ -9,37 +10,38 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return const Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
+          padding: EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 24),
-              const Text(
+              SizedBox(height: 24),
+              Text(
                 'Welcome',
                 style: TextStyle(
                   fontSize: 32,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const Text(
+              Text(
                 'We are glad to see you!',
                 style: TextStyle(
                   fontSize: 18,
                   color: Colors.black87,
                 ),
               ),
-              const SizedBox(height: 24),
-              const SkinCheckCard(),
-              const SizedBox(height: 16),
-              const HealthInsightsCard(),
-              const SizedBox(height: 16),
-              const VirtualConsultationsCard(),
-              const SizedBox(height: 16),
-              const VirtualAssistantCard(),
-              const SizedBox(height: 16),
+              SizedBox(height: 24),
+              SkinCheckCard(),
+              // SizedBox(height: 16),
+              // HealthInsightsCard(),
+              SizedBox(height: 16),
+              VirtualAssistantCard(),
+              SizedBox(height: 16),
+              VirtualConsultationsCard(),
+              SizedBox(height: 16),
+              EPharmacySection()
             ],
           ),
         ),

@@ -37,4 +37,5 @@ class Product {
       totalReviews: map['totalReviews'] ?? 0,
     );
   }
+
 }

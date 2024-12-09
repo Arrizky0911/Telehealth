@@ -18,6 +18,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String lastName = 'Last Name';
   String email = '';
   String phone = '';
+  String? profileImageUrl;
   bool isLoading = true;
 
   @override
@@ -41,76 +42,95 @@ class _ProfileScreenState extends State<ProfileScreen> {
             lastName = userData.data()?['lastName'] ?? 'Last Name';
             email = user.email ?? '';
             phone = userData.data()?['phone'] ?? '';
+            profileImageUrl = userData.data()?['profileImageUrl'];
             isLoading = false;
           });
         }
       }
-    } catch (e){
-      print('Error load a user data: $e');
+    } catch (e) {
+      print('Error loading user data: $e');
     }
   }
 
   Widget _buildPersonalInfoCard() {
     return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       child: Container(
         decoration: BoxDecoration(
-          gradient: LinearGradient(
+          gradient: const LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              const Color(0xFF7986CB).withOpacity(0.9),
-              const Color(0xFF5C6BC0),
+              Color(0xFF9BA3EB),
+              Color(0xFF8E97E9),
             ],
           ),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(24),
         ),
         child: Padding(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(24),
           child: Column(
             children: [
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(10),
+                    width: 48,
+                    height: 48,
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(16),
                     ),
-                    child: const Icon(
+                    child: profileImageUrl != null
+                        ? ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: Image.network(
+                        profileImageUrl!,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) =>
+                        const Icon(
+                          Icons.person_outline,
+                          color: Colors.white,
+                          size: 24,
+                        ),
+                      ),
+                    )
+                        : const Icon(
                       Icons.person_outline,
                       color: Colors.white,
                       size: 24,
                     ),
                   ),
-                  IconButton(
-                    icon: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(Icons.edit, color: Colors.white, size: 20),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(16),
                     ),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const PersonalInformationScreen(),
-                        )
-                      ).then((_) => _loadUserData());
-                    },
+                    child: IconButton(
+                      icon: const Icon(Icons.edit, color: Colors.white, size: 20),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                            const PersonalInformationScreen(),
+                          ),
+                        ).then((_) => _loadUserData());
+                      },
+                    ),
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
-              _buildInfoRow(Icons.person_outline, '$firstName $lastName', true),
-              const SizedBox(height: 12),
-              _buildInfoRow(Icons.email_outlined, email, true),
-              const SizedBox(height: 12),
-              _buildInfoRow(Icons.phone_outlined, phone.isEmpty ? 'Add phone number' : phone, true),
+              const SizedBox(height: 24),
+              _buildInfoRow(Icons.person_outline, '$firstName $lastName'),
+              const SizedBox(height: 16),
+              _buildInfoRow(Icons.email_outlined, email),
+              const SizedBox(height: 16),
+              _buildInfoRow(
+                Icons.phone_outlined,
+                phone.isEmpty ? 'Add phone number' : phone,
+              ),
             ],
           ),
         ),
@@ -118,17 +138,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildInfoRow(IconData icon, String text, bool isWhite) {
+  Widget _buildInfoRow(IconData icon, String text) {
     return Row(
       children: [
-        Icon(icon, size: 20, color: isWhite ? Colors.white70 : Colors.grey[600]),
-        const SizedBox(width: 12),
+        Icon(
+          icon,
+          size: 20,
+          color: Colors.white.withOpacity(0.7),
+        ),
+        const SizedBox(width: 16),
         Expanded(
           child: Text(
             text,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 16,
-              color: isWhite ? Colors.white : Colors.grey[800],
+              color: Colors.white,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ),
@@ -139,10 +164,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _signOut() async {
     try {
       await FirebaseAuth.instance.signOut();
-      // Navigate to login screen or initial screen after sign out
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const EnterScreen()));
+      if (!mounted) return;
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const EnterScreen()),
+      );
     } catch (e) {
-      print('Error signing out: $e');
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Failed to sign out. Please try again.')),
       );
@@ -153,33 +181,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
+      appBar: AppBar(
+        title: const Text('Profile Settings'),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Center(
-                  child: Container(
-                    width: 120,
-                    height: 120,
-                    decoration: BoxDecoration(
-                      color: Colors.black87,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      Icons.person_outline,
-                      color: Colors.white,
-                      size: 48,
+                isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : _buildPersonalInfoCard(),
+                const SizedBox(height: 24),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                  child: Text(
+                    'General',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey,
                     ),
                   ),
                 ),
-                const SizedBox(height: 24),
-                isLoading 
-                  ? const Center(child: CircularProgressIndicator())
-                  : _buildPersonalInfoCard(),
-                const SizedBox(height: 24),
                 MenuItem(
                   icon: Icons.person_outline,
                   title: 'Personal Information',
@@ -189,47 +217,111 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       MaterialPageRoute(
                         builder: (context) => const PersonalInformationScreen(),
                       ),
-                    );
+                    ).then((_) => _loadUserData());
                   },
                 ),
-                const SizedBox(height: 12),
                 MenuItem(
                   icon: Icons.medical_services_outlined,
                   title: 'Medical History',
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const HistoryScreen()),
+                      MaterialPageRoute(
+                        builder: (context) => const HistoryScreen(),
+                      ),
                     );
                   },
                 ),
-                const SizedBox(height: 12),
                 MenuItem(
                   icon: Icons.translate_outlined,
                   title: 'Languages',
                   onTap: () {},
                 ),
-                const SizedBox(height: 32),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: _signOut,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF786083),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(32),
-                      ),
+                MenuItem(
+                  icon: Icons.dark_mode_outlined,
+                  title: 'Dark Mode',
+                  trailing: Switch(
+                    value: false,  // Replace with actual dark mode state
+                    onChanged: (bool value) {
+                      // Implement dark mode toggle
+                    },
+                  ),
+                  onTap: () {},
+                ),
+                MenuItem(
+                  icon: Icons.devices_outlined,
+                  title: 'Linked Devices',
+                  subtitle: 'iPhone 16 Pro',
+                  onTap: () {},
+                ),
+                MenuItem(
+                  icon: Icons.chat_bubble_outline,
+                  title: 'Chatbot Preference',
+                  trailing: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: Colors.blue,
+                      borderRadius: BorderRadius.circular(12),
                     ),
                     child: const Text(
-                      'Sign Out',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
+                      'Beta',
+                      style: TextStyle(color: Colors.white, fontSize: 12),
                     ),
                   ),
+                  onTap: () {},
+                ),
+                MenuItem(
+                  icon: Icons.notifications_none,
+                  title: 'Smart Notifications',
+                  onTap: () {},
+                ),
+                const SizedBox(height: 24),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                  child: Text(
+                    'Security & Privacy',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ),
+                MenuItem(
+                  icon: Icons.privacy_tip_outlined,
+                  title: 'Privacy Policy',
+                  onTap: () {},
+                ),
+                MenuItem(
+                  icon: Icons.security_outlined,
+                  title: 'Security Settings',
+                  onTap: () {},
+                ),
+                const SizedBox(height: 24),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                  child: Text(
+                    'Danger Zone',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ),
+                MenuItem(
+                  icon: Icons.close_rounded,
+                  title: 'Close Account',
+                  isDanger: true,
+                  onTap: () {
+                    // Implement close account functionality
+                  },
+                ),
+                const SizedBox(height: 24),
+                MenuItem(
+                  icon: Icons.logout_rounded,
+                  title: 'Sign Out',
+                  onTap: _signOut,
                 ),
               ],
             ),
@@ -239,4 +331,3 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 }
-
