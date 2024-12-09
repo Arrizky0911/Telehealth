@@ -185,6 +185,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         title: const Text('Profile Settings'),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        automaticallyImplyLeading: false, // Add this line
       ),
       body: SafeArea(
         child: SingleChildScrollView(

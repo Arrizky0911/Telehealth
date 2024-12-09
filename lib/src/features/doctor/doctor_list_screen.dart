@@ -5,7 +5,9 @@ import 'package:myapp/src/models/doctor.dart';
 import 'package:myapp/src/features/consultation/consultation_history_screen.dart';
 
 class DoctorListScreen extends StatefulWidget {
-  const DoctorListScreen({super.key});
+  final bool showAppBarArrow; // Add this line
+
+  const DoctorListScreen({super.key, this.showAppBarArrow = true});
 
   @override
   State<DoctorListScreen> createState() => _DoctorListScreenState();
@@ -38,29 +40,7 @@ class _DoctorListScreenState extends State<DoctorListScreen> {
           slivers: [
             SliverAppBar(
               backgroundColor: Colors.white,
-              automaticallyImplyLeading: false,
-              title: const Text(
-                'Available Doctors',
-                style: TextStyle(
-                  color: Colors.black,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              actions: [
-                IconButton(
-                  icon: const Icon(Icons.history, color: Colors.black),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const ConsultationHistoryScreen(),
-                      ),
-                    );
-                  },
-                ),
-              ],
-              floating: true,
-              snap: true,
+              foregroundColor: Colors.black,
             ),
             SliverPersistentHeader(
               pinned: true,
