@@ -73,9 +73,51 @@ class _LoginScreenState extends State<SignInScreen> {
           MaterialPageRoute(builder: (_) => const MainScreen()),
         );
       }
+    } on FirebaseAuthException catch (e) {
+      String errorMessage;
+      switch (e.code) {
+        case 'user-not-found':
+          errorMessage = 'No user found with this email.';
+          break;
+        case 'wrong-password':
+          errorMessage = 'Wrong password provided.';
+          break;
+        case 'invalid-email':
+          errorMessage = 'The email address is badly formatted.';
+          break;
+        case 'user-disabled':
+          errorMessage = 'This user account has been disabled.';
+          break;
+        case 'too-many-requests':
+          errorMessage = 'Too many unsuccessful login attempts. Please try again later.';
+          break;
+        default:
+          errorMessage = 'An error occurred. Please try again.';
+      }
+      _showErrorDialog(errorMessage);
     } catch (e) {
       // Error handling
+    } finally {
+      setState(() => _isLoading = false);
     }
+  }
+
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Login Error'),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+            },
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
