@@ -213,7 +213,23 @@ class _ImprovedTasksScreenState extends State<TasksScreen> {
     );
   }
 
-  void _updateTaskProgress(String taskId, int newProgress) {
+  void _updateTaskProgress(String taskId, int newProgress) async {
+  final userAuthUID = FirebaseAuth.instance.currentUser?.uid;
+  if (userAuthUID == null) {
+    print('User not authenticated');
+    return;
+  }
+
+  try {
+    // Use the taskId (documentId) to update the task in Firestore
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(userAuthUID)
+        .collection('tasks')
+        .doc(taskId)
+        .update({'progress': newProgress});
+
+    // Update UI
     setState(() {
       final dateKey = DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day);
       final tasks = _tasksByDate[dateKey];
@@ -224,7 +240,10 @@ class _ImprovedTasksScreenState extends State<TasksScreen> {
         }
       }
     });
+  } catch (e) {
+    print('Error updating task progress: $e');
   }
+}
 
   void _fetchTasks() async {
     final userAuthUID = FirebaseAuth.instance.currentUser?.uid;

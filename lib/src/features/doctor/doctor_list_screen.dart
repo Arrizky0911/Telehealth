@@ -4,7 +4,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:myapp/src/models/doctor.dart';
 
 class DoctorListScreen extends StatefulWidget {
-  const DoctorListScreen({super.key});
+  final bool showAppBarArrow; // Add this line
+
+  const DoctorListScreen({super.key, this.showAppBarArrow = true});
 
   @override
   State<DoctorListScreen> createState() => _DoctorListScreenState();
@@ -41,6 +43,7 @@ class _DoctorListScreenState extends State<DoctorListScreen> {
               pinned: true,
               backgroundColor: Colors.white,
               foregroundColor: Colors.black,
+              automaticallyImplyLeading: widget.showAppBarArrow,
             ),
             SliverPersistentHeader(
               pinned: true,
