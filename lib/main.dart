@@ -3,8 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:myapp/src/constants/firebase_options.dart';
 import 'package:myapp/src/features/welcome/enter_screen.dart';
 
-
-void main() async  {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
@@ -90,7 +89,9 @@ class MyApp extends StatelessWidget {
         ),
       ),
       home: const EnterScreen(),
+      routes: {
+        '/login': (context) => const EnterScreen(),
+      },
     );
   }
 }
-
