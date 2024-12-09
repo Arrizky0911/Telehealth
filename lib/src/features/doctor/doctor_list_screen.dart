@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:myapp/src/features/doctor/doctor_detail_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:myapp/src/models/doctor.dart';
+import 'package:myapp/src/features/consultation/consultation_history_screen.dart';
 
 class DoctorListScreen extends StatefulWidget {
   const DoctorListScreen({super.key});
@@ -24,7 +25,7 @@ class _DoctorListScreenState extends State<DoctorListScreen> {
   void _onSearchChanged() {
     final query = _searchController.text.toLowerCase();
     setState(() {
-      // Filter akan dihandle oleh StreamBuilder
+      // Filter for handle StreamBuilder
     });
   }
 
@@ -36,11 +37,30 @@ class _DoctorListScreenState extends State<DoctorListScreen> {
         child: CustomScrollView(
           slivers: [
             SliverAppBar(
-              title: const Text('Available Doctors'),
-              centerTitle: true,
-              pinned: true,
               backgroundColor: Colors.white,
-              foregroundColor: Colors.black,
+              automaticallyImplyLeading: false,
+              title: const Text(
+                'Available Doctors',
+                style: TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.history, color: Colors.black),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const ConsultationHistoryScreen(),
+                      ),
+                    );
+                  },
+                ),
+              ],
+              floating: true,
+              snap: true,
             ),
             SliverPersistentHeader(
               pinned: true,

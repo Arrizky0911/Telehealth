@@ -41,6 +41,41 @@ class _DoctorChatScreenState extends State<DoctorChatScreen> {
     }
   }
 
+  Future<void> _finishConsultation() async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('chats')
+          .doc(widget.chatRoomId)
+          .update({
+        'status': 'completed',
+        'completedAt': FieldValue.serverTimestamp(),
+      });
+
+      if (mounted) {
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error finishing consultation: $e')),
+        );
+      }
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> _getConsultationMessages() async {
+    final messages = await FirebaseFirestore.instance
+        .collection('chats')
+        .doc(widget.chatRoomId)
+        .collection('messages')
+        .orderBy('timestamp')
+        .get();
+
+    return messages.docs
+        .map((doc) => doc.data() as Map<String, dynamic>)
+        .toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -65,6 +100,15 @@ class _DoctorChatScreenState extends State<DoctorChatScreen> {
             ),
           ],
         ),
+        actions: [
+          TextButton(
+            onPressed: _finishConsultation,
+            child: const Text(
+              'Finish',
+              style: TextStyle(color: Colors.red),
+            ),
+          ),
+        ],
       ),
       body: Column(
         children: [

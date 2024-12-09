@@ -90,7 +90,6 @@ class ConsultationPaymentScreen extends StatelessWidget {
         ),
         child: ElevatedButton(
           onPressed: () {
-            // TODO: Implement actual payment
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
@@ -98,7 +97,7 @@ class ConsultationPaymentScreen extends StatelessWidget {
                   doctorId: doctorId,
                   doctorName: doctorName,
                   specialty: specialty,
-                  chatRoomId: '${FirebaseAuth.instance.currentUser!.uid}_$doctorId',
+                  chatRoomId: '',
                 ),
               ),
             );
