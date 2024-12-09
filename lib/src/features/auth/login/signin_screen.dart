@@ -26,11 +26,12 @@ class _LoginScreenState extends State<SignInScreen> {
 
   Future<void> _login() async {
     if (!_formKey.currentState!.validate()) return;
-    
+
     try {
       setState(() => _isLoading = true);
-      
-      final userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+
+      final userCredential =
+          await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text,
       );
@@ -58,7 +59,7 @@ class _LoginScreenState extends State<SignInScreen> {
           .collection('users')
           .doc(userCredential.user?.uid)
           .get();
-      
+
       final userData = userDoc.data();
       if (userData?['role'] == 'admin') {
         if (!mounted) return;
@@ -73,30 +74,9 @@ class _LoginScreenState extends State<SignInScreen> {
           MaterialPageRoute(builder: (_) => const MainScreen()),
         );
       }
-    } on FirebaseAuthException catch (e) {
-      String errorMessage;
-      switch (e.code) {
-        case 'user-not-found':
-          errorMessage = 'No user found with this email.';
-          break;
-        case 'wrong-password':
-          errorMessage = 'Wrong password provided.';
-          break;
-        case 'invalid-email':
-          errorMessage = 'The email address is badly formatted.';
-          break;
-        case 'user-disabled':
-          errorMessage = 'This user account has been disabled.';
-          break;
-        case 'too-many-requests':
-          errorMessage = 'Too many unsuccessful login attempts. Please try again later.';
-          break;
-        default:
-          errorMessage = 'An error occurred. Please try again.';
-      }
-      _showErrorDialog(errorMessage);
-    } catch (e) {
+    }  catch (e) {
       // Error handling
+      _showErrorDialog(e.toString());
     } finally {
       setState(() => _isLoading = false);
     }
@@ -174,7 +154,11 @@ class _LoginScreenState extends State<SignInScreen> {
             EmailField(emailController: _emailController),
             const SizedBox(height: 16),
             // Password Field
-            PasswordField(passwordController: _passwordController, label: "Password", confirmPassword: false,),
+            PasswordField(
+              passwordController: _passwordController,
+              label: "Password",
+              confirmPassword: false,
+            ),
 
             const SizedBox(height: 16),
 
@@ -187,7 +171,8 @@ class _LoginScreenState extends State<SignInScreen> {
                     Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => const ForgotPasswordScreen()));
+                            builder: (context) =>
+                                const ForgotPasswordScreen()));
                   },
                   style: TextButton.styleFrom(
                     padding: EdgeInsets.zero,

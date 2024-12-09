@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -12,46 +14,104 @@ class _ImprovedTasksScreenState extends State<TasksScreen> {
   DateTime _selectedDate = DateTime.now();
   final List<DateTime> _weekDates = List.generate(
     7,
-    (index) => DateTime.now().add(Duration(days: index)),
+        (index) => DateTime.now().add(Duration(days: index)),
   );
-  
+
   final Map<DateTime, List<Task>> _tasksByDate = {};
-  
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchTasks(); // Fetch tasks when the screen loads
+  }
+
   List<Task> _getTasksForSelectedDate() {
     final dateKey = DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day);
     return _tasksByDate[dateKey] ?? [];
   }
 
-  void _addNewTask(String title, String subtitle, [int? progress, int? total]) {
-    setState(() {
-      final dateKey = DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day);
+  void _addNewTask(String title, String subtitle, [int? progress, int? total]) async {
+    final userAuthUID = FirebaseAuth.instance.currentUser?.uid;
+    if (userAuthUID == null) {
+      print('User not authenticated');
+      return;
+    }
+
+    final dateKey = DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day);
+
+    try {
+      // Save task data to Firestore and get the document reference
+      final docRef = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userAuthUID)
+          .collection('tasks')
+          .add({
+        'date': dateKey,
+        'title': title,
+        'subtitle': subtitle,
+        'progress': progress ?? 0,
+        'total': total,
+        'completed': false,
+      });
+
+      // Get the document ID
+      final documentId = docRef.id;
+
+      // Create the Task object with the document ID
       final newTask = Task(
-        id: DateTime.now().millisecondsSinceEpoch,
+        id: documentId, // Store the document ID
         title: title,
         subtitle: subtitle,
         progress: progress ?? 0,
         total: total,
       );
-      
-      if (_tasksByDate.containsKey(dateKey)) {
-        _tasksByDate[dateKey]!.add(newTask);
-      } else {
-        _tasksByDate[dateKey] = [newTask];
-      }
-    });
+
+      // Update UI
+      setState(() {
+        if (_tasksByDate.containsKey(dateKey)) {
+          _tasksByDate[dateKey]!.add(newTask);
+        } else {
+          _tasksByDate[dateKey] = [newTask];
+        }
+      });
+    } catch (e) {
+      print('Error adding task: $e');
+      // Handle the error, e.g., show a snackbar
+    }
   }
 
-  void _toggleTaskStatus(int taskId) {
-    setState(() {
-      final dateKey = DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day);
-      final tasks = _tasksByDate[dateKey];
-      if (tasks != null) {
-        final taskIndex = tasks.indexWhere((task) => task.id == taskId);
-        if (taskIndex != -1) {
-          tasks[taskIndex].completed = !tasks[taskIndex].completed;
+  void _toggleTaskStatus(String taskId) async {
+    final userAuthUID = FirebaseAuth.instance.currentUser?.uid;
+    if (userAuthUID == null) {
+      print('User not authenticated');
+      return;
+    }
+
+    final dateKey = DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day);
+    final tasks = _tasksByDate[dateKey];
+
+    if (tasks != null) {
+      final taskIndex = tasks.indexWhere((task) => task.id == taskId);
+      if (taskIndex != -1) {
+        try {
+          // Use the documentId to update the task
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(userAuthUID)
+              .collection('tasks')
+              .doc(taskId) // Use taskId directly
+              .update({'completed': !tasks[taskIndex].completed});
+
+          // Update UI
+          setState(() {
+            tasks[taskIndex].completed = !tasks[taskIndex].completed;
+          });
+        } catch (e) {
+          print('Error toggling task status: $e');
+          // Handle the error
         }
       }
-    });
+    }
   }
 
   void _showAddTaskDialog() {
@@ -153,7 +213,7 @@ class _ImprovedTasksScreenState extends State<TasksScreen> {
     );
   }
 
-  void _updateTaskProgress(int taskId, int newProgress) {
+  void _updateTaskProgress(String taskId, int newProgress) {
     setState(() {
       final dateKey = DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day);
       final tasks = _tasksByDate[dateKey];
@@ -166,10 +226,47 @@ class _ImprovedTasksScreenState extends State<TasksScreen> {
     });
   }
 
+  void _fetchTasks() async {
+    final userAuthUID = FirebaseAuth.instance.currentUser?.uid;
+    if (userAuthUID == null) {
+      print('User not authenticated');
+      return;
+    }
+
+    try {
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userAuthUID)
+          .collection('tasks')
+          .where('date',
+          isEqualTo: DateTime(_selectedDate.year, _selectedDate.month,
+              _selectedDate.day))
+          .get();
+
+      setState(() {
+        _tasksByDate[DateTime(_selectedDate.year, _selectedDate.month,
+            _selectedDate.day)] = querySnapshot.docs.map((doc) {
+          final data = doc.data();
+          return Task(
+            id: doc.id, // Get the document ID
+            title: data['title'],
+            subtitle: data['subtitle'],
+            progress: data['progress'],
+            total: data['total'],
+            completed: data['completed'],
+          );
+        }).toList();
+      });
+    } catch (e) {
+      print('Error fetching tasks: $e');
+      // Handle the error
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final tasksForSelectedDate = _getTasksForSelectedDate();
-    
+
     return Scaffold(
       body: SafeArea(
         child: Column(
@@ -201,7 +298,12 @@ class _ImprovedTasksScreenState extends State<TasksScreen> {
                     child: _DateButton(
                       date: date,
                       isSelected: isSelected,
-                      onTap: () => setState(() => _selectedDate = date),
+                      onTap: () {
+                        setState(() {
+                          _selectedDate = date;
+                          _fetchTasks(); // Fetch tasks for the new date
+                        });
+                      },
                     ),
                   );
                 },
@@ -219,7 +321,10 @@ class _ImprovedTasksScreenState extends State<TasksScreen> {
                     ),
                   ),
                   OutlinedButton.icon(
-                    onPressed: () {},
+                    onPressed: () {
+                      // Handle "Today" button press
+                      // This might involve setting _selectedDate to today's date
+                    },
                     icon: const Icon(Icons.calendar_today, size: 16),
                     label: const Text('Today'),
                     style: OutlinedButton.styleFrom(
@@ -235,30 +340,30 @@ class _ImprovedTasksScreenState extends State<TasksScreen> {
             ),
             Expanded(
               child: tasksForSelectedDate.isEmpty
-                ? Center(
-                    child: Text(
-                      'No tasks for this date',
-                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: Colors.grey,
-                      ),
-                    ),
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    itemCount: tasksForSelectedDate.length,
-                    itemBuilder: (context, index) {
-                      final task = tasksForSelectedDate[index];
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 16.0),
-                        child: _TaskCard(
-                          task: task,
-                          onToggle: () => _toggleTaskStatus(task.id),
-                          onProgressUpdate: (taskId, newProgress) => 
-                            _updateTaskProgress(taskId, newProgress),
-                        ),
-                      );
-                    },
+                  ? Center(
+                child: Text(
+                  'No tasks for this date',
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    color: Colors.grey,
                   ),
+                ),
+              )
+                  : ListView.builder(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                itemCount: tasksForSelectedDate.length,
+                itemBuilder: (context, index) {
+                  final task = tasksForSelectedDate[index];
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 16.0),
+                    child: _TaskCard(
+                      task: task,
+                      onToggle: () => _toggleTaskStatus(task.id),
+                      onProgressUpdate: (taskId, newProgress) =>
+                          _updateTaskProgress(taskId, newProgress),
+                    ),
+                  );
+                },
+              ),
             ),
           ],
         ),
@@ -329,7 +434,7 @@ class _DateButton extends StatelessWidget {
 class _TaskCard extends StatelessWidget {
   final Task task;
   final VoidCallback onToggle;
-  final Function(int, int) onProgressUpdate;
+  final Function(String, int) onProgressUpdate;
 
   const _TaskCard({
     required this.task,
@@ -424,7 +529,7 @@ class _TaskCard extends StatelessWidget {
 }
 
 class Task {
-  final int id;
+  final String id; // Now stores the document ID
   final String title;
   final String subtitle;
   int? progress;
