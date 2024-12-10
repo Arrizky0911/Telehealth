@@ -52,7 +52,7 @@ class _MainScreenState extends State<MainScreen> {
       ),
       body: <Widget>[
         const HomeScreen(),
-        const DoctorListScreen(),
+        const DoctorListScreen(showAppBarArrow: false),
         const TasksScreen(),
         const ProfileScreen()
       ][currentPageIndex],

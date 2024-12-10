@@ -26,11 +26,12 @@ class _LoginScreenState extends State<SignInScreen> {
 
   Future<void> _login() async {
     if (!_formKey.currentState!.validate()) return;
-    
+
     try {
       setState(() => _isLoading = true);
-      
-      final userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+
+      final userCredential =
+          await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text,
       );
@@ -58,7 +59,7 @@ class _LoginScreenState extends State<SignInScreen> {
           .collection('users')
           .doc(userCredential.user?.uid)
           .get();
-      
+
       final userData = userDoc.data();
       if (userData?['role'] == 'admin') {
         if (!mounted) return;
@@ -73,9 +74,30 @@ class _LoginScreenState extends State<SignInScreen> {
           MaterialPageRoute(builder: (_) => const MainScreen()),
         );
       }
-    } catch (e) {
+    }  catch (e) {
       // Error handling
+      _showErrorDialog(e.toString());
+    } finally {
+      setState(() => _isLoading = false);
     }
+  }
+
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Login Error'),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+            },
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -132,7 +154,11 @@ class _LoginScreenState extends State<SignInScreen> {
             EmailField(emailController: _emailController),
             const SizedBox(height: 16),
             // Password Field
-            PasswordField(passwordController: _passwordController, label: "Password", confirmPassword: false,),
+            PasswordField(
+              passwordController: _passwordController,
+              label: "Password",
+              confirmPassword: false,
+            ),
 
             const SizedBox(height: 16),
 
@@ -145,7 +171,8 @@ class _LoginScreenState extends State<SignInScreen> {
                     Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => const ForgotPasswordScreen()));
+                            builder: (context) =>
+                                const ForgotPasswordScreen()));
                   },
                   style: TextButton.styleFrom(
                     padding: EdgeInsets.zero,
