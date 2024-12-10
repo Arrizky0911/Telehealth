@@ -8,6 +8,8 @@ import 'package:myapp/src/models/cart_item.dart';
 import 'package:myapp/src/models/product.dart';
 import 'package:myapp/src/features/checkout/checkout_result.dart';
 import 'package:uuid/uuid.dart';
+import 'package:myapp/src/models/order.dart' as myOrder; // Import your Order model
+
 
 class CheckoutScreen extends StatefulWidget {
   const CheckoutScreen({super.key});
@@ -295,18 +297,18 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
-  Widget _buildShippingAddress() {
-    return ShippingAddress(
-      streetController: _streetController,
-      cityController: _cityController,
-      stateController: _stateController,
-      postalCodeController: _postalCodeController,
-      saveAddress: () {
-        setState(() {});
-        Navigator.pop(context);
-      },
-    );
-  }
+ Widget _buildShippingAddress() {
+  return ShippingAddress(
+    streetController: _streetController,
+    cityController: _cityController,
+    stateController: _stateController,
+    postalCodeController: _postalCodeController,
+    saveAddress: () {
+      // Call setState to rebuild the widget with the updated address
+      setState(() {}); 
+    },
+  );
+}
 
   Widget _buildPaymentDetail() {
     return PaymentDetail(currencyFormat: _currencyFormat, cartItems: _cartItems, total: _total);
@@ -319,27 +321,41 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       try {
         final user = FirebaseAuth.instance.currentUser;
         if (user != null) {
-          final orderRef = await FirebaseFirestore.instance.collection('orders').doc(orderId).set({
-            'orderId': orderId,
-            'userId': user.uid,
-            'address': {
-              'street': _streetController.text,
-              'city': _cityController.text,
-              'state': _stateController.text,
-              'postalCode': _postalCodeController.text,
-            },
-            'items': _cartItems.map((item) => {
-              'productId': item.product.id,
-              'quantity': item.quantity,
-              'price': item.product.price,
-            }).toList(),
-            'subtotal': _subtotal,
-            'shipping': 24000,
-            'total': _total,
-            'paymentMethod': _selectedPaymentMethod,
-            'status': 'pending',
-            'createdAt': FieldValue.serverTimestamp(),
-          });
+          myOrder.Address address = myOrder.Address(
+                      city: _cityController.text,
+                      postalCode: _postalCodeController.text,
+                      state: _stateController.text,
+                      street: _streetController.text,
+                    );
+
+           // Create OrderItem objects
+          List<myOrder.OrderItem> orderItems = _cartItems.map((item) => 
+            myOrder.OrderItem(
+              price: item.product.price.toInt(), // Assuming price is an int
+              productId: item.product.id,
+              quantity: item.quantity,
+            )
+          ).toList();
+
+           // Create an Order object
+          myOrder.Order order = myOrder.Order(
+            orderId: orderId,
+            address: address,
+            createdAt: DateTime.now(), 
+            items: orderItems,
+            paymentMethod: _selectedPaymentMethod,
+            shipping: 24000,
+            status: 'pending',
+            subtotal: _subtotal.toInt(),
+            total: _total.toInt(),
+          );
+
+          final orderRef =  await FirebaseFirestore.instance
+              .collection('users')
+              .doc(user.uid)
+              .collection('orders') 
+              .doc(orderId)
+              .set(order.toMap()); 
 
           // Clear cart after successful order
           final cartDocs = await FirebaseFirestore.instance

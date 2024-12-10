@@ -248,4 +248,3 @@ class _DoctorChatScreenState extends State<DoctorChatScreen> {
     }
   }
 }
-
