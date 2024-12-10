@@ -218,31 +218,6 @@ class _DoctorChatScreenState extends State<DoctorChatScreen> {
           .get();
       final doctorData = doctorDoc.data() as Map<String, dynamic>;
       final doctorName = doctorData['name'];
-      final specialty = doctorData['specialty'];
-
-      // Check if chat already exists
-      final existingChat = await FirebaseFirestore.instance
-          .collection('chats')
-          .doc(widget.chatRoomId)
-          .get();
-
-      if (!existingChat.exists) {
-        // Create new chat document if it doesn't exist
-        await FirebaseFirestore.instance
-            .collection('chats')
-            .doc(widget.chatRoomId)
-            .set({
-          'doctorId': user!.uid,
-          'doctorName': doctorName,
-          'specialty': specialty,
-          'patientId': widget.patientId,
-          'patientName': widget.patientName,
-          'chatRoomId': widget.chatRoomId,
-          'lastMessage': '',
-          'lastMessageTime': FieldValue.serverTimestamp(),
-          'unreadCount': 0,
-        });
-      }
 
       await FirebaseFirestore.instance
           .collection('chats')
@@ -250,25 +225,19 @@ class _DoctorChatScreenState extends State<DoctorChatScreen> {
           .collection('messages')
           .add({
         'senderId': user!.uid,
-        'receiverId': widget.patientId,
+        'senderName': doctorName,
         'message': _messageController.text.trim(),
         'timestamp': FieldValue.serverTimestamp(),
       });
 
+      // Update last message
       await FirebaseFirestore.instance
           .collection('chats')
           .doc(widget.chatRoomId)
-          .set({
+          .update({
         'lastMessage': _messageController.text.trim(),
         'lastMessageTime': FieldValue.serverTimestamp(),
-        'doctorId': user!.uid,
-        'doctorName': doctorName,
-        'specialty': specialty,
-        'patientId': widget.patientId,
-        'patientName': widget.patientName,
-        'chatRoomId': widget.chatRoomId,
-        'unreadCount': FieldValue.increment(1),
-      }, SetOptions(merge: true));
+      });
 
       _messageController.clear();
       _scrollToBottom();

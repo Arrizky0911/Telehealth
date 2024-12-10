@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:myapp/src/features/doctor/chat/chat_screen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:myapp/src/features/doctor/chat/chat_screen.dart';
 import 'package:myapp/src/features/doctor/user_consultation.dart';
 import 'package:myapp/src/features/doctor/widgets/doctor_card.dart';
 import 'package:myapp/src/models/doctor.dart';
@@ -183,21 +184,7 @@ class _ConsultationPaymentScreenState extends State<ConsultationPaymentScreen> {
         ],
       ),
       child: ElevatedButton(
-        onPressed: () {
-          Navigator.pop(context);
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              // builder: (context) => ChatScreen(
-              //   doctorId: widget.doctor.uid,
-              //   doctorName: widget.doctor.name,
-              //   specialty: widget.doctor.specialty,
-              //   chatRoomId: '${FirebaseAuth.instance.currentUser!.uid}_${widget.doctor.uid}',
-              // ),
-              builder: (context) => const UserConsultation()
-            ),
-          );
-        },
+        onPressed: () => _handlePayment(context),
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFF5C6BC0),
           padding: const EdgeInsets.symmetric(vertical: 16),
@@ -214,6 +201,81 @@ class _ConsultationPaymentScreenState extends State<ConsultationPaymentScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _handlePayment(BuildContext context) async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) return;
+
+      final timestamp = DateTime.now().microsecondsSinceEpoch;
+      final chatRoomId = '${user.uid}_${widget.doctor.uid}_$timestamp';
+
+      // Buat chat room baru
+      await FirebaseFirestore.instance
+          .collection('chats')
+          .doc(chatRoomId)
+          .set({
+        'doctorId': widget.doctor.uid,
+        'doctorName': widget.doctor.name,
+        'specialty': widget.doctor.specialty,
+        'patientId': user.uid,
+        'patientName': user.displayName,
+        'chatRoomId': chatRoomId,
+        'startedAt': FieldValue.serverTimestamp(),
+        'status': 'active',
+        'lastMessage': '',
+        'lastMessageTime': FieldValue.serverTimestamp(),
+      });
+
+      // Tambah ke history konsultasi
+      await FirebaseFirestore.instance
+          .collection('consultations')
+          .doc(user.uid)
+          .collection('history')
+          .add({
+        'doctorId': widget.doctor.uid,
+        'doctorName': widget.doctor.name,
+        'specialty': widget.doctor.specialty,
+        'patientId': user.uid,
+        'patientName': user.displayName,
+        'chatRoomId': chatRoomId,
+        'startedAt': FieldValue.serverTimestamp(),
+        'status': 'active',
+        'lastMessage': '',
+        'lastMessageTime': FieldValue.serverTimestamp(),
+      });
+
+      // Init chat dengan pesan sistem
+      await FirebaseFirestore.instance
+          .collection('chats')
+          .doc(chatRoomId)
+          .collection('messages')
+          .add({
+        'senderId': 'system',
+        'message': 'Chat consultation started',
+        'timestamp': FieldValue.serverTimestamp(),
+        'type': 'system'
+      });
+
+      if (!mounted) return;
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ChatScreen(
+            doctorId: widget.doctor.uid,
+            doctorName: widget.doctor.name,
+            specialty: widget.doctor.specialty,
+            chatRoomId: chatRoomId,
+          ),
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error creating chat: $e')),
+      );
+    }
   }
 }
 

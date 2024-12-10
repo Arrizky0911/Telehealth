@@ -1,168 +1,264 @@
 import 'package:flutter/material.dart';
-import 'package:myapp/src/models/consultation.dart';
-import 'package:myapp/src/features/doctor/widgets/consultation_card.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:intl/intl.dart';
+import 'package:myapp/src/features/doctor/chat/chat_screen.dart';
 
-class UserConsultation extends StatefulWidget {
+class UserConsultation extends StatelessWidget {
   const UserConsultation({super.key});
-
-  @override
-  State<UserConsultation> createState() => _UserConsultationState();
-}
-
-class _UserConsultationState extends State<UserConsultation> {
-  final List<Consultation> consultations = [
-    Consultation(
-      uid: '1',
-      doctorName: 'Dr. Spike Brown',
-      specialty: 'Cardiologist',
-      dateTime: '2023-05-10 10:30',
-      status: 'Completed',
-    ),
-    Consultation(
-      uid: '2',
-      doctorName: 'Dr. Jane Smith',
-      specialty: 'Dermatologist',
-      dateTime: '2023-05-09 14:00',
-      status: 'Cancelled',
-    ),
-    Consultation(
-      uid: '3',
-      doctorName: 'Dr. John Doe',
-      specialty: 'Pediatrician',
-      dateTime: '2023-05-08 09:15',
-      status: 'Completed',
-    ),
-    Consultation(
-      uid: '4',
-      doctorName: 'Dr. Emily Johnson',
-      specialty: 'Neurologist',
-      dateTime: '2023-05-11 15:45',
-      status: 'Ongoing',
-    ),
-  ];
-
-  int selectedDayIndex = 0;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
-        children: [
-          _buildHeader(),
-          Expanded(
-            child: ListView(
-              children: _groupConsultations(),
-            ),
-          ),
-        ],
+      appBar: AppBar(
+        title: const Text('My Consultations'),
+        backgroundColor: const Color(0xFF5C6BC0),
+        foregroundColor: Colors.white,
       ),
-    );
-  }
-
-  Widget _buildHeader() {
-    return Container(
-      padding: EdgeInsets.only(
-        top: MediaQuery.of(context).padding.top,
-        bottom: 30,
-      ),
-      decoration: const BoxDecoration(
-        color: Color(0xFF87CF3A)
-      ),
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 0.0),
-            child: Row(
-              children: [
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.3),
-                    borderRadius: BorderRadius.circular(12),
+      body: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance
+            .collection('consultations')
+            .doc(FirebaseAuth.instance.currentUser?.uid)
+            .collection('history')
+            .orderBy('startedAt', descending: true)
+            .snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.error_outline, size: 56, color: Colors.red[300]),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Something went wrong',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey[700],
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
-                  child: IconButton(
-                    icon: const Icon(Icons.arrow_back, color: Colors.white),
-                    onPressed: () => Navigator.pop(context),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Please try again later',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          final consultations = snapshot.data?.docs ?? [];
+
+          if (consultations.isEmpty) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.medical_services_outlined,
+                    size: 64,
+                    color: Colors.grey[400],
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'No Consultations Yet',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey[700],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Your consultation history will appear here',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          return ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: consultations.length,
+            itemBuilder: (context, index) {
+              final consultation = consultations[index].data() as Map<String, dynamic>;
+              final startedAt = consultation['startedAt'] as Timestamp;
+              final status = consultation['status'] as String;
+
+              Color statusColor;
+              String statusText;
+              switch (status.toLowerCase()) {
+                case 'active':
+                  statusColor = const Color(0xFFFF9800);
+                  statusText = 'Ongoing';
+                  break;
+                case 'completed':
+                  statusColor = const Color(0xFF4CAF50);
+                  statusText = 'Completed';
+                  break;
+                case 'cancelled':
+                  statusColor = const Color(0xFFF44336);
+                  statusText = 'Cancelled';
+                  break;
+                default:
+                  statusColor = Colors.grey;
+                  statusText = 'Unknown';
+              }
+
+              return Card(
+                elevation: 2,
+                margin: const EdgeInsets.only(bottom: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: InkWell(
+                  onTap: () {
+                    if (status.toLowerCase() == 'active') {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ChatScreen(
+                            doctorId: consultation['doctorId'],
+                            doctorName: consultation['doctorName'],
+                            specialty: consultation['specialty'],
+                            chatRoomId: consultation['chatRoomId'],
+                          ),
+                        ),
+                      );
+                    }
+                  },
+                  borderRadius: BorderRadius.circular(12),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            CircleAvatar(
+                              backgroundColor: const Color(0xFF5C6BC0).withOpacity(0.1),
+                              radius: 24,
+                              child: Text(
+                                'Dr',
+                                style: TextStyle(
+                                  color: const Color(0xFF5C6BC0),
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Dr. ${consultation['doctorName']}',
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    consultation['specialty'] ?? 'Specialist',
+                                    style: TextStyle(
+                                      color: Colors.grey[600],
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: statusColor.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Text(
+                                statusText,
+                                style: TextStyle(
+                                  color: statusColor,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        const Divider(),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.calendar_today,
+                              size: 16,
+                              color: Colors.grey[600],
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              DateFormat('MMM dd, yyyy - HH:mm').format(startedAt.toDate()),
+                              style: TextStyle(
+                                color: Colors.grey[600],
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ),
+                        if (status.toLowerCase() == 'active') ...[
+                          const SizedBox(height: 16),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => ChatScreen(
+                                      doctorId: consultation['doctorId'],
+                                      doctorName: consultation['doctorName'],
+                                      specialty: consultation['specialty'],
+                                      chatRoomId: consultation['chatRoomId'],
+                                    ),
+                                  ),
+                                );
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF5C6BC0),
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              child: const Text('Continue Chat'),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
                   ),
                 ),
-                const SizedBox(width: 16),
-                const Text(
-                  'My Consultations',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+              );
+            },
+          );
+        },
       ),
     );
   }
-
-  List<Widget> _groupConsultations() {
-    final now = DateTime.now();
-    final groups = {
-      'Today': consultations.where((c) => _isToday(c.dateTime)).toList(),
-      'Yesterday': consultations.where((c) => _isYesterday(c.dateTime)).toList(),
-      'This Week': consultations.where((c) => _isThisWeek(c.dateTime)).toList(),
-      'This Month': consultations.where((c) => _isThisMonth(c.dateTime)).toList(),
-      'Earlier': consultations.where((c) => _isEarlier(c.dateTime)).toList(),
-    };
-
-    return groups.entries
-        .where((entry) => entry.value.isNotEmpty)
-        .expand((entry) => [
-      _buildGroupHeader(entry.key),
-      ...entry.value.map((consultation) => ConsultationCard(consultation: consultation)),
-    ])
-        .toList();
-  }
-
-  Widget _buildGroupHeader(String title) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
-      child: Text(
-        title,
-        style: const TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.bold,
-          color: Colors.black54,
-        ),
-      ),
-    );
-  }
-
-  bool _isToday(String dateTime) {
-    final date = DateTime.parse(dateTime);
-    final now = DateTime.now();
-    return date.year == now.year && date.month == now.month && date.day == now.day;
-  }
-
-  bool _isYesterday(String dateTime) {
-    final date = DateTime.parse(dateTime);
-    final yesterday = DateTime.now().subtract(const Duration(days: 1));
-    return date.year == yesterday.year && date.month == yesterday.month && date.day == yesterday.day;
-  }
-
-  bool _isThisWeek(String dateTime) {
-    final date = DateTime.parse(dateTime);
-    final now = DateTime.now();
-    final startOfWeek = now.subtract(Duration(days: now.weekday - 1));
-    return date.isAfter(startOfWeek) && date.isBefore(now) && !_isToday(dateTime) && !_isYesterday(dateTime);
-  }
-
-  bool _isThisMonth(String dateTime) {
-    final date = DateTime.parse(dateTime);
-    final now = DateTime.now();
-    return date.year == now.year && date.month == now.month && !_isThisWeek(dateTime) && !_isToday(dateTime) && !_isYesterday(dateTime);
-  }
-
-  bool _isEarlier(String dateTime) {
-    final date = DateTime.parse(dateTime);
-    final startOfMonth = DateTime(DateTime.now().year, DateTime.now().month, 1);
-    return date.isBefore(startOfMonth);
-  }
-
 }
