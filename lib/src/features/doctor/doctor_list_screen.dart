@@ -7,7 +7,9 @@ import 'package:myapp/src/features/doctor/widgets/search_bar.dart';
 import 'package:myapp/src/features/doctor/widgets/doctor_card.dart';
 
 class DoctorListScreen extends StatefulWidget {
-  const DoctorListScreen({super.key});
+  final bool showAppBarArrow;
+
+  const DoctorListScreen({super.key, this.showAppBarArrow = true});
 
   @override
   State<DoctorListScreen> createState() => _DoctorListScreenState();
@@ -65,7 +67,7 @@ class _DoctorListScreenState extends State<DoctorListScreen> {
 
   Widget _buildAppBar() {
     return SliverAppBar(
-      automaticallyImplyLeading: false,
+      automaticallyImplyLeading: widget.showAppBarArrow,
       title: Column(
         children: [
           const Text('Consultation & Appointment'),

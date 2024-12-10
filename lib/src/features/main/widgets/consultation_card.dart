@@ -84,7 +84,7 @@ class VirtualConsultationsCard extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const DoctorListScreen()
+                            builder: (context) => const DoctorListScreen(showAppBarArrow: true,)
                           ),
                         );
                       },
