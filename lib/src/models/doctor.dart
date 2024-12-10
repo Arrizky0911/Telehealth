@@ -12,6 +12,7 @@ class Doctor {
   final bool isActive;
   final int totalReviews;
   final List<Map<String, dynamic>> reviews;
+  final String imageUri;
 
   Doctor({
     required this.uid,
@@ -27,6 +28,7 @@ class Doctor {
     this.isActive = true,
     this.totalReviews = 0,
     this.reviews = const [],
+    required this.imageUri,
   });
 
   factory Doctor.fromMap(Map<String, dynamic> map) {
@@ -44,6 +46,7 @@ class Doctor {
       isActive: map['isActive'] ?? false,
       totalReviews: map['totalReviews'] ?? 0,
       reviews: List<Map<String, dynamic>>.from(map['reviews'] ?? []),
+      imageUri: map['imageUri'] ?? '',
     );
   }
 }

@@ -249,28 +249,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   onTap: () {},
                 ),
                 MenuItem(
-                  icon: Icons.devices_outlined,
-                  title: 'Linked Devices',
-                  subtitle: 'iPhone 16 Pro',
-                  onTap: () {},
-                ),
-                MenuItem(
-                  icon: Icons.chat_bubble_outline,
-                  title: 'Chatbot Preference',
-                  trailing: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: Colors.blue,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Text(
-                      'Beta',
-                      style: TextStyle(color: Colors.white, fontSize: 12),
-                    ),
-                  ),
-                  onTap: () {},
-                ),
-                MenuItem(
                   icon: Icons.notifications_none,
                   title: 'Smart Notifications',
                   onTap: () {},
@@ -310,17 +288,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
                 MenuItem(
-                  icon: Icons.close_rounded,
-                  title: 'Close Account',
-                  isDanger: true,
-                  onTap: () {
-                    // Implement close account functionality
-                  },
-                ),
-                const SizedBox(height: 24),
-                MenuItem(
                   icon: Icons.logout_rounded,
                   title: 'Sign Out',
+                  isDanger: true,
                   onTap: _signOut,
                 ),
               ],

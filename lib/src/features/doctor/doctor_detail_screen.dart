@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:myapp/src/features/doctor/consultation_payment_screen.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:myapp/src/features/checkout/book_appointment.dart';
+import 'package:myapp/src/features/checkout/consultation_payment_screen.dart';
+import 'package:myapp/src/features/doctor/user_appointment.dart';
 import 'package:myapp/src/models/doctor.dart';
+import 'package:intl/intl.dart';
 
 class DoctorDetailScreen extends StatelessWidget {
   final Doctor doctor;
@@ -17,35 +21,85 @@ class DoctorDetailScreen extends StatelessWidget {
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
-            expandedHeight: 200,
+            expandedHeight: 280,
             pinned: true,
-            backgroundColor: Colors.white,
+            backgroundColor: const Color(0xFF87CF3A),
+            leading: Container(
+              margin: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.3),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: IconButton(
+                icon: const Icon(Icons.arrow_back, color: Colors.white),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ),
+            actions: [
+              Container(
+                margin: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ],
             flexibleSpace: FlexibleSpaceBar(
               background: Container(
-                color: const Color(0xFF7986CB),
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Color(0xFF87CF3A), Color(0xFF5EA625)],
+                  ),
+                ),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    const SizedBox(height: 40),
                     CircleAvatar(
                       radius: 50,
                       backgroundColor: Colors.white,
-                      child: Text(
-                        doctor.name.substring(0, 2),
-                        style: const TextStyle(
-                          fontSize: 30,
-                          color: Color(0xFF7986CB),
-                          fontWeight: FontWeight.bold,
-                        ),
+                      child: ClipOval(
+                        child: doctor.imageUri.isNotEmpty
+                            ? CachedNetworkImage(
+                          imageUrl: doctor.imageUri,
+                          width: 96,
+                          height: 96,
+                          fit: BoxFit.cover,
+                          errorWidget: (context, url, error) => _buildDoctorInitials(),
+                        )
+                            : _buildDoctorInitials(),
                       ),
                     ),
                     const SizedBox(height: 16),
-                    Text(
-                      doctor.name,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          doctor.name,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Icon(
+                          Icons.check_circle,
+                          color: doctor.isOnline ? Colors.white : Colors.white54,
+                          size: 20,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        _buildHeaderInfo(Icons.star, '${doctor.rating}'),
+                        _buildHeaderDivider(),
+                        _buildHeaderInfo(Icons.medical_services_outlined, doctor.specialty),
+                      ],
                     ),
                   ],
                 ),
@@ -87,29 +141,27 @@ class DoctorDetailScreen extends StatelessWidget {
           children: [
             Expanded(
               child: ElevatedButton(
-                onPressed: () {
+                onPressed: doctor.isOnline ? () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) => ConsultationPaymentScreen(
-                        doctorId: doctor.uid,
-                        doctorName: doctor.name,
-                        specialty: doctor.specialty,
-                        consultationFee: doctor.price.toDouble(),
+                        doctor: doctor,
                       ),
                     ),
                   );
-                },
+                } : null,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF5C6BC0),
+                  backgroundColor: const Color(0xFF87CF3A),
+                  disabledBackgroundColor: Colors.grey[300],
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: const Text(
-                  'Chat Consultation',
-                  style: TextStyle(
+                child: Text(
+                  doctor.isOnline ? 'Chat Consultation' : 'Doctor Offline',
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                   ),
@@ -120,10 +172,13 @@ class DoctorDetailScreen extends StatelessWidget {
             Expanded(
               child: ElevatedButton(
                 onPressed: () {
-                  // TODO: Implement booking functionality
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => BookAppointmentScreen(doctor: doctor)),
+                  );
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF5C6BC0),
+                  backgroundColor: const Color(0xFF87CF3A),
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -144,12 +199,58 @@ class DoctorDetailScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildHeaderInfo(IconData icon, String text) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, color: Colors.white, size: 16),
+        const SizedBox(width: 4),
+        Text(
+          text,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 14,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildHeaderDivider() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 8),
+      height: 4,
+      width: 4,
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        shape: BoxShape.circle,
+      ),
+    );
+  }
+
+  Widget _buildDoctorInitials() {
+    return Container(
+      width: 96,
+      height: 96,
+      color: Colors.white,
+      child: Center(
+        child: Text(
+          doctor.name.substring(0, 2).toUpperCase(),
+          style: const TextStyle(
+            color: Color(0xFF87CF3A),
+            fontSize: 30,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildInfoSection(Doctor doctor) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
         _buildInfoCard('Experience', doctor.experience),
-        _buildInfoCard('Rating', '${doctor.rating}/5.0'),
         _buildInfoCard('Reviews', '${doctor.totalReviews}+'),
       ],
     );
@@ -227,7 +328,7 @@ class DoctorDetailScreen extends StatelessWidget {
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                'Consultation Fee: Rp ${doctor.price}',
+                'Consultation Fee: Rp ${NumberFormat('#,###').format(doctor.price)}',
                 style: TextStyle(
                   fontSize: 14,
                   color: Colors.grey[600],
@@ -261,12 +362,12 @@ class DoctorDetailScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
+              const Row(
                 children: [
-                  const Icon(Icons.access_time, color: Color(0xFF5C6BC0)),
-                  const SizedBox(width: 12),
-                  const Text(
-                    'Available Times:',
+                  Icon(Icons.access_time, color: Color(0xFF87CF3A)),
+                  SizedBox(width: 12),
+                  Text(
+                    'Mon - Fri',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
@@ -281,13 +382,13 @@ class DoctorDetailScreen extends StatelessWidget {
                 children: doctor.availableTimes.map((time) => Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF5C6BC0).withOpacity(0.1),
+                    color: const Color(0xFF87CF3A).withOpacity(0.1),
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Text(
                     time,
                     style: const TextStyle(
-                      color: Color(0xFF5C6BC0),
+                      color: Color(0xFF87CF3A),
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -304,37 +405,45 @@ class DoctorDetailScreen extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Patient Reviews',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              'Patient Reviews',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            Text(
+              '${doctor.totalReviews} Reviews',
+              style: TextStyle(
+                color: Colors.grey[600],
+                fontSize: 14,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        ...doctor.reviews.map((review) => Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: _buildReviewCard(
+            review['name'] ?? 'Anonymous',
+            (review['rating'] ?? 0.0).toDouble(),
+            review['comment'] ?? '',
+            review['date'] ?? 'Recently',
           ),
-        ),
-        const SizedBox(height: 12),
-        _buildReviewCard(
-          'Sarah Johnson',
-          4.8,
-          'Great doctor! Very thorough and caring.',
-          '2 days ago',
-        ),
-        const SizedBox(height: 12),
-        _buildReviewCard(
-          'Michael Chen',
-          4.5,
-          'Professional and knowledgeable. Highly recommend!',
-          '1 week ago',
-        ),
+        )).toList(),
       ],
     );
   }
 
   Widget _buildReviewCard(
-    String name,
-    double rating,
-    String comment,
-    String time,
-  ) {
+      String name,
+      double rating,
+      String comment,
+      String time,
+      ) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(

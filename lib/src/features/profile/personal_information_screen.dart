@@ -5,12 +5,17 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:intl/intl.dart';
+import 'package:myapp/src/features/profile/widgets/address.dart';
+import 'package:myapp/src/features/profile/widgets/medical_information.dart';
+import 'package:myapp/src/features/profile/widgets/personal_details.dart';
+import 'package:myapp/src/features/profile/widgets/physical_information_data.dart';
+import 'package:myapp/src/features/profile/widgets/profile_image.dart';
 
 class PersonalInformationScreen extends StatefulWidget {
-  const PersonalInformationScreen({Key? key}) : super(key: key);
+  const PersonalInformationScreen({super.key});
 
   @override
-  _PersonalInformationScreenState createState() => _PersonalInformationScreenState();
+  State<PersonalInformationScreen> createState() => _PersonalInformationScreenState();
 }
 
 class _PersonalInformationScreenState extends State<PersonalInformationScreen> {
@@ -22,22 +27,18 @@ class _PersonalInformationScreenState extends State<PersonalInformationScreen> {
   final picker = ImagePicker();
   DateTime? _lastUpdated;
 
-  final _firstNameController = TextEditingController();
-  final _lastNameController = TextEditingController();
-  final _emailController = TextEditingController();
-  final _phoneController = TextEditingController();
-  final _streetController = TextEditingController();
-  final _cityController = TextEditingController();
-  final _stateController = TextEditingController();
-  final _postalCodeController = TextEditingController();
-  final _ageController = TextEditingController();
-  final _bloodTypeController = TextEditingController();
-  final _allergiesController = TextEditingController();
-  final _medicationsController = TextEditingController();
+  late PersonalDetailsData _personalDetails;
+  late AddressData _addressData;
+  late MedicalInformationData _medicalInfo;
+  late PhysicalInformationData _physicalInfo;
 
   @override
   void initState() {
     super.initState();
+    _personalDetails = PersonalDetailsData();
+    _addressData = AddressData();
+    _medicalInfo = MedicalInformationData();
+    _physicalInfo = PhysicalInformationData();
     _loadUserData();
   }
 
@@ -57,18 +58,10 @@ class _PersonalInformationScreenState extends State<PersonalInformationScreen> {
         if (userData.exists) {
           Map<String, dynamic> data = userData.data() as Map<String, dynamic>;
           setState(() {
-            _firstNameController.text = data['firstName'] ?? '';
-            _lastNameController.text = data['lastName'] ?? '';
-            _emailController.text = user.email ?? '';
-            _phoneController.text = data['phone'] ?? '';
-            _streetController.text = data['address']?['street'] ?? '';
-            _cityController.text = data['address']?['city'] ?? '';
-            _stateController.text = data['address']?['state'] ?? '';
-            _postalCodeController.text = data['address']?['postalCode'] ?? '';
-            _ageController.text = data['age']?.toString() ?? '';
-            _bloodTypeController.text = data['bloodType'] ?? '';
-            _allergiesController.text = data['allergies'] ?? '';
-            _medicationsController.text = data['medications'] ?? '';
+            _personalDetails.loadFromMap(data);
+            _addressData.loadFromMap(data['address'] ?? {});
+            _medicalInfo.loadFromMap(data);
+            _physicalInfo.loadFromMap(data);
             _imageUrl = data['profileImageUrl'];
             _lastUpdated = (data['lastUpdated'] as Timestamp?)?.toDate();
           });
@@ -85,44 +78,45 @@ class _PersonalInformationScreenState extends State<PersonalInformationScreen> {
     }
   }
 
-  Future<void> _getImage(ImageSource source) async {
-    final pickedFile = await picker.pickImage(source: source);
+  Future<void> _saveUserData() async {
+    if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isLoading = true;
+      });
 
-    setState(() {
-      if (pickedFile != null) {
-        _image = File(pickedFile.path);
-      }
-    });
-  }
+      try {
+        User? user = FirebaseAuth.instance.currentUser;
+        if (user == null) throw Exception('User not logged in');
 
-  void _showImageSourceActionSheet(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      builder: (BuildContext context) {
-        return SafeArea(
-          child: Wrap(
-            children: <Widget>[
-              ListTile(
-                leading: const Icon(Icons.camera),
-                title: const Text('Take a picture'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _getImage(ImageSource.camera);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.photo_library),
-                title: const Text('Choose from gallery'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _getImage(ImageSource.gallery);
-                },
-              ),
-            ],
-          ),
+        String? imageUrl = _image != null ? await _uploadImage() : _imageUrl;
+
+        await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+          ..._personalDetails.toMap(),
+          'address': _addressData.toMap(),
+          ..._medicalInfo.toMap(),
+          ..._physicalInfo.toMap(),
+          'profileImageUrl': imageUrl,
+          'lastUpdated': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
+
+        setState(() {
+          _isEditing = false;
+          _imageUrl = imageUrl;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Profile updated successfully')),
         );
-      },
-    );
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error updating profile: $e')),
+        );
+      } finally {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   Future<String?> _uploadImage() async {
@@ -146,56 +140,6 @@ class _PersonalInformationScreenState extends State<PersonalInformationScreen> {
         SnackBar(content: Text('Error uploading image: $e')),
       );
       return null;
-    }
-  }
-
-  Future<void> _saveUserData() async {
-    if (_formKey.currentState!.validate()) {
-      setState(() {
-        _isLoading = true;
-      });
-
-      try {
-        User? user = FirebaseAuth.instance.currentUser;
-        if (user == null) throw Exception('User not logged in');
-
-        String? imageUrl = _image != null ? await _uploadImage() : _imageUrl;
-
-        await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
-          'firstName': _firstNameController.text,
-          'lastName': _lastNameController.text,
-          'phone': _phoneController.text,
-          'address': {
-            'street': _streetController.text,
-            'city': _cityController.text,
-            'state': _stateController.text,
-            'postalCode': _postalCodeController.text,
-          },
-          'age': int.tryParse(_ageController.text),
-          'bloodType': _bloodTypeController.text,
-          'allergies': _allergiesController.text,
-          'medications': _medicationsController.text,
-          'profileImageUrl': imageUrl,
-          'lastUpdated': FieldValue.serverTimestamp(),
-        }, SetOptions(merge: true));
-
-        setState(() {
-          _isEditing = false;
-          _imageUrl = imageUrl;
-        });
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Profile updated successfully')),
-        );
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error updating profile: $e')),
-        );
-      } finally {
-        setState(() {
-          _isLoading = false;
-        });
-      }
     }
   }
 
@@ -225,174 +169,35 @@ class _PersonalInformationScreenState extends State<PersonalInformationScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Center(
-                  child: GestureDetector(
-                    onTap: _isEditing ? () => _showImageSourceActionSheet(context) : null,
-                    child: Stack(
-                      children: [
-                        CircleAvatar(
-                          radius: 60,
-                          backgroundColor: Colors.grey[200],
-                          backgroundImage: _image != null
-                              ? FileImage(_image!)
-                              : (_imageUrl != null ? NetworkImage(_imageUrl!) : null) as ImageProvider?,
-                          child: (_image == null && _imageUrl == null)
-                              ? const Icon(Icons.person, size: 60, color: Colors.grey)
-                              : null,
-                        ),
-                        if (_isEditing)
-                          Positioned(
-                            bottom: 0,
-                            right: 0,
-                            child: CircleAvatar(
-                              backgroundColor: Theme.of(context).primaryColor,
-                              radius: 18,
-                              child: const Icon(Icons.camera_alt, size: 18, color: Colors.white),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                const Text(
-                  'Personal Details',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 16),
-                _buildTextField(
-                  controller: _firstNameController,
-                  label: 'First Name',
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your first name';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                _buildTextField(
-                  controller: _lastNameController,
-                  label: 'Last Name',
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your last name';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                _buildTextField(
-                  controller: _emailController,
-                  label: 'Email',
-                  enabled: false,
-                ),
-                const SizedBox(height: 16),
-                _buildTextField(
-                  controller: _phoneController,
-                  label: 'Phone Number',
-                  keyboardType: TextInputType.phone,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your phone number';
-                    }
-                    if (value.length < 12) {
-                      return 'Phone number must be at least 12 digits';
-                    }
-                    return null;
+                ProfileImage(
+                  image: _image,
+                  imageUrl: _imageUrl,
+                  isEditing: _isEditing,
+                  onImagePicked: (File image) {
+                    setState(() {
+                      _image = image;
+                    });
                   },
                 ),
                 const SizedBox(height: 24),
-                const Text(
-                  'Address',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 16),
-                _buildTextField(
-                  controller: _streetController,
-                  label: 'Street Address',
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your street address';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                _buildTextField(
-                  controller: _cityController,
-                  label: 'City',
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your city';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                _buildTextField(
-                  controller: _stateController,
-                  label: 'State',
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your state';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                _buildTextField(
-                  controller: _postalCodeController,
-                  label: 'Postal Code',
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your postal code';
-                    }
-                    return null;
-                  },
+                PersonalDetailsWidget(
+                  data: _personalDetails,
+                  isEditing: _isEditing,
                 ),
                 const SizedBox(height: 24),
-                const Text(
-                  'Medical Information',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                AddressWidget(
+                  data: _addressData,
+                  isEditing: _isEditing,
                 ),
-                const SizedBox(height: 16),
-                _buildTextField(
-                  controller: _ageController,
-                  label: 'Age',
-                  keyboardType: TextInputType.number,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your age';
-                    }
-                    if (int.tryParse(value) == null) {
-                      return 'Please enter a valid age';
-                    }
-                    return null;
-                  },
+                const SizedBox(height: 24),
+                PhysicalInformationWidget(
+                  data: _physicalInfo,
+                  isEditing: _isEditing,
                 ),
-                const SizedBox(height: 16),
-                _buildTextField(
-                  controller: _bloodTypeController,
-                  label: 'Blood Type',
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your blood type';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                _buildTextField(
-                  controller: _allergiesController,
-                  label: 'Allergies',
-                  maxLines: 3,
-                ),
-                const SizedBox(height: 16),
-                _buildTextField(
-                  controller: _medicationsController,
-                  label: 'Current Medications',
-                  maxLines: 3,
+                const SizedBox(height: 24),
+                MedicalInformationWidget(
+                  data: _medicalInfo,
+                  isEditing: _isEditing,
                 ),
                 const SizedBox(height: 24),
                 if (_lastUpdated != null)
@@ -407,46 +212,5 @@ class _PersonalInformationScreenState extends State<PersonalInformationScreen> {
       ),
     );
   }
-
-  Widget _buildTextField({
-    required TextEditingController controller,
-    required String label,
-    bool enabled = true,
-    TextInputType? keyboardType,
-    int maxLines = 1,
-    String? Function(String?)? validator,
-  }) {
-    return TextFormField(
-      controller: controller,
-      enabled: enabled && _isEditing,
-      keyboardType: keyboardType,
-      maxLines: maxLines,
-      decoration: InputDecoration(
-        labelText: label,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-        filled: !enabled || !_isEditing,
-        fillColor: !enabled || !_isEditing ? Colors.grey[100] : null,
-      ),
-      validator: validator,
-    );
-  }
-
-  @override
-  void dispose() {
-    _firstNameController.dispose();
-    _lastNameController.dispose();
-    _emailController.dispose();
-    _phoneController.dispose();
-    _streetController.dispose();
-    _cityController.dispose();
-    _stateController.dispose();
-    _postalCodeController.dispose();
-    _ageController.dispose();
-    _bloodTypeController.dispose();
-    _allergiesController.dispose();
-    _medicationsController.dispose();
-    super.dispose();
-  }
 }
+
