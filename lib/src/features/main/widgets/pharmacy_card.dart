@@ -126,10 +126,10 @@ class _EPharmacySectionState extends State<EPharmacySection> {
                     MaterialPageRoute(builder: (context) => const PharmacyShopScreen()),
                   );
                 },
-                child: Text(
+                child: const Text(
                   'See All',
                   style: TextStyle(
-                    color: Theme.of(context).primaryColor,
+                    color: Color(0xFFFF4081),
                     fontWeight: FontWeight.w600,
                   ),
                 ),

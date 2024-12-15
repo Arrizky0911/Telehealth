@@ -23,7 +23,7 @@ class DoctorDetailScreen extends StatelessWidget {
           SliverAppBar(
             expandedHeight: 280,
             pinned: true,
-            backgroundColor: const Color(0xFF87CF3A),
+            backgroundColor: const Color(0xFFFF4081),
             leading: Container(
               margin: const EdgeInsets.all(8),
               decoration: BoxDecoration(
@@ -50,7 +50,7 @@ class DoctorDetailScreen extends StatelessWidget {
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [Color(0xFF87CF3A), Color(0xFF5EA625)],
+                    colors: [Color(0xFFFF4081), Color(0xFFFF4081)],
                   ),
                 ),
                 child: Column(
@@ -152,7 +152,7 @@ class DoctorDetailScreen extends StatelessWidget {
                   );
                 } : null,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF87CF3A),
+                  backgroundColor: const Color(0xFFFF4081),
                   disabledBackgroundColor: Colors.grey[300],
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
@@ -178,7 +178,7 @@ class DoctorDetailScreen extends StatelessWidget {
                   );
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF87CF3A),
+                  backgroundColor: const Color(0xFFFF4081),
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -237,7 +237,7 @@ class DoctorDetailScreen extends StatelessWidget {
         child: Text(
           doctor.name.substring(0, 2).toUpperCase(),
           style: const TextStyle(
-            color: Color(0xFF87CF3A),
+            color: Color(0xFFFF4081),
             fontSize: 30,
             fontWeight: FontWeight.bold,
           ),
@@ -364,7 +364,7 @@ class DoctorDetailScreen extends StatelessWidget {
             children: [
               const Row(
                 children: [
-                  Icon(Icons.access_time, color: Color(0xFF87CF3A)),
+                  Icon(Icons.access_time, color: Color(0xFFFF4081)),
                   SizedBox(width: 12),
                   Text(
                     'Mon - Fri',
@@ -382,13 +382,13 @@ class DoctorDetailScreen extends StatelessWidget {
                 children: doctor.availableTimes.map((time) => Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF87CF3A).withOpacity(0.1),
+                    color: const Color(0xFFFF4081).withOpacity(0.1),
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Text(
                     time,
                     style: const TextStyle(
-                      color: Color(0xFF87CF3A),
+                      color: Color(0xFFFF4081),
                       fontWeight: FontWeight.w500,
                     ),
                   ),

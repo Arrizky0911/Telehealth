@@ -34,8 +34,8 @@ class _MainScreenState extends State<MainScreen> {
             label: 'Home',
           ),
           NavigationDestination(
-            selectedIcon: Icon(Icons.check_box),
-            icon: Icon(Icons.check_box_outlined),
+            selectedIcon: Icon(Icons.medical_services),
+            icon: Icon(Icons.medical_services_outlined),
             label: 'Consultation',
           ),
           NavigationDestination(

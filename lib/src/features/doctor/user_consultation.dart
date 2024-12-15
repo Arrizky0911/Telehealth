@@ -12,7 +12,7 @@ class UserConsultation extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('My Consultations'),
-        backgroundColor: const Color(0xFF5C6BC0),
+        backgroundColor: const Color(0xFFFF4081),
         foregroundColor: Colors.white,
       ),
       body: StreamBuilder<QuerySnapshot>(
@@ -148,12 +148,12 @@ class UserConsultation extends StatelessWidget {
                         Row(
                           children: [
                             CircleAvatar(
-                              backgroundColor: const Color(0xFF5C6BC0).withOpacity(0.1),
+                              backgroundColor: const Color(0xFFFF4081).withOpacity(0.1),
                               radius: 24,
                               child: Text(
                                 'Dr',
                                 style: TextStyle(
-                                  color: const Color(0xFF5C6BC0),
+                                  color: const Color(0xFFFF4081),
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -240,7 +240,7 @@ class UserConsultation extends StatelessWidget {
                                 );
                               },
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF5C6BC0),
+                                backgroundColor: const Color(0xFFFF4081),
                                 foregroundColor: Colors.white,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(8),

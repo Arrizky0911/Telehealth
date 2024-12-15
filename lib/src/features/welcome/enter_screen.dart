@@ -48,7 +48,7 @@ class EnterScreen extends StatelessWidget {
                           MaterialPageRoute(
                               builder: (context) => const WelcomeScreen()));
                   },
-                  color: const Color(0xFF4B5BA6),
+                  color: const Color(0xFFFF4D4F),
                 ),
                 
 
@@ -64,7 +64,7 @@ class EnterScreen extends StatelessWidget {
                           MaterialPageRoute(
                               builder: (context) => const SignInMethod()));
                   },
-                  color: const Color(0xFF666F89),
+                  color: const Color(0xFFFF4D4F),
                 )
               ],
             ),

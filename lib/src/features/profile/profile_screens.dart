@@ -62,8 +62,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Color(0xFF9BA3EB),
-              Color(0xFF8E97E9),
+              Color(0xFFFF4081),
+              Color(0xFFFF4081),
             ],
           ),
           borderRadius: BorderRadius.circular(24),
@@ -181,12 +181,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
-      appBar: AppBar(
-        title: const Text('Profile Settings'),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        automaticallyImplyLeading: false, // Add this line
-      ),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
@@ -223,7 +217,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
                 MenuItem(
                   icon: Icons.medical_services_outlined,
-                  title: 'Medical History',
+                  title: 'Order History',
                   onTap: () {
                     Navigator.push(
                       context,

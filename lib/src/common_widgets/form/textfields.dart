@@ -34,9 +34,9 @@ class TextInputField extends StatelessWidget {
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: Color(0xFF4B5BA6)),
+            borderSide: const BorderSide(color: Color(0xFFFF4D4F)),
           ),
-          floatingLabelStyle: const TextStyle(color: Color(0xFF4B5BA6)),
+          floatingLabelStyle: const TextStyle(color: Color(0xFFFF4D4F)),
           suffixIcon: suffixIcon),
       validator: validator,
     );

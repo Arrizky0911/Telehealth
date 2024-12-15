@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_generative_ai/google_generative_ai.dart';
 
 class VirtualAssistantScreen extends StatefulWidget {
   const VirtualAssistantScreen({super.key});
@@ -11,15 +12,39 @@ class _VirtualAssistantScreenState extends State<VirtualAssistantScreen> {
   final TextEditingController _messageController = TextEditingController();
   final List<ChatMessage> _messages = [
     const ChatMessage(
-      text: "Hii! I'm your virtual assistant. I can help you with:\n\n"
-          "• Skincare recommendation based on skin type\n"
+      text: "Hi! I'm your virtual assistant powered by Gemini AI. I can help you with:\n\n"
           "• Information about app features\n"
-          "• Skin care tips\n"
           "• Answers to common questions\n\n"
           "What do you want to ask? 🤔",
       isUser: false,
     ),
   ];
+
+  late final GenerativeModel _model;
+  late final ChatSession _chat;
+
+  // Define the system prompt
+  static const String _systemPrompt = '''
+    You are a medical virtual assistant that provides useful answers about diseases,
+          symptoms, etc.only using the information from a primekg database
+          already provided in the context.Prefer higher rated information in your context and
+          add source links in your answers.
+    ''';
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeGemini();
+  }
+
+  void _initializeGemini() {
+    const apiKey = 'AIzaSyAbmEte1Y0s4mY_xGpLaxWVku7kZ0soH8U'; // Replace with your actual API key
+    final model = GenerativeModel(model: 'gemini-pro', apiKey: apiKey);
+    _model = model;
+    _chat = model.startChat(history: [
+      Content.text(_systemPrompt)
+    ]);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,12 +67,12 @@ class _VirtualAssistantScreenState extends State<VirtualAssistantScreen> {
         title: const Row(
           children: [
             CircleAvatar(
-              backgroundColor: Color(0xFF5C6BC0),
+              backgroundColor: Color(0xFFFF4D4F),
               child: Icon(Icons.smart_toy_outlined, color: Colors.white, size: 20),
             ),
             SizedBox(width: 12),
             Text(
-              'Virtual Assistant',
+              'Gemini Assistant',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -101,7 +126,7 @@ class _VirtualAssistantScreenState extends State<VirtualAssistantScreen> {
                 const SizedBox(width: 8),
                 Container(
                   decoration: BoxDecoration(
-                    color: const Color(0xFF5C6BC0),
+                    color: const Color(0xFFFF4D4F),
                     borderRadius: BorderRadius.circular(24),
                   ),
                   child: IconButton(
@@ -117,22 +142,52 @@ class _VirtualAssistantScreenState extends State<VirtualAssistantScreen> {
     );
   }
 
-  void _sendMessage() {
+  void _sendMessage() async {
     if (_messageController.text.trim().isEmpty) return;
 
+    final userMessage = _messageController.text;
     setState(() {
       _messages.add(ChatMessage(
-        text: _messageController.text,
+        text: userMessage,
         isUser: true,
-      ));
-      // Simulasi respons asisten
-      _messages.add(ChatMessage(
-        text: "Thank you for your question. I will help you with relevant information. 😉",
-        isUser: false,
       ));
     });
 
     _messageController.clear();
+
+    // Show typing indicator
+    setState(() {
+      _messages.add(const ChatMessage(
+        text: "Typing...",
+        isUser: false,
+      ));
+    });
+
+    try {
+      final response = await _chat.sendMessage(Content.text(userMessage));
+      final botResponse = response.text ?? "I'm sorry, I couldn't generate a response.";
+
+      setState(() {
+        // Remove typing indicator
+        _messages.removeLast();
+        // Add bot response
+        _messages.add(ChatMessage(
+          text: botResponse,
+          isUser: false,
+        ));
+      });
+    } catch (e) {
+      setState(() {
+        // Remove typing indicator
+        _messages.removeLast();
+        // Add error message
+        _messages.add(const ChatMessage(
+          text: "Sorry, I encountered an error while processing your request.",
+          isUser: false,
+        ));
+      });
+      print('Error: $e');
+    }
   }
 }
 
@@ -155,7 +210,7 @@ class ChatMessage extends StatelessWidget {
         children: [
           if (!isUser) ...[
             const CircleAvatar(
-              backgroundColor: Color(0xFF5C6BC0),
+              backgroundColor: Color(0xFFFF4D4F),
               child: Icon(Icons.smart_toy_outlined, color: Colors.white, size: 16),
             ),
             const SizedBox(width: 8),
@@ -164,7 +219,7 @@ class ChatMessage extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: isUser ? const Color(0xFF5C6BC0) : Colors.grey.shade100,
+                color: isUser ? const Color(0xFFFF4D4F) : Colors.grey.shade100,
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Text(

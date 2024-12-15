@@ -207,7 +207,7 @@ class _RegistrationScreenState extends State<RegisterScreen> {
                     child: const Text(
                       'Have an Account?',
                       style: TextStyle(
-                        color: Color(0xFF4B5BA6),
+                        color: Color(0xFFFF4D4F),
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -229,7 +229,7 @@ class _RegistrationScreenState extends State<RegisterScreen> {
                           _register();
                         }
                       },
-                      color: const Color(0xFF4B5BA6),
+                      color: const Color(0xFFFF4D4F),
                     ),
                   )),
 

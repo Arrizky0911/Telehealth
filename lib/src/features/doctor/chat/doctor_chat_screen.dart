@@ -84,7 +84,7 @@ class _DoctorChatScreenState extends State<DoctorChatScreen> {
         title: Row(
           children: [
             CircleAvatar(
-              backgroundColor: const Color(0xFF7986CB),
+              backgroundColor: const Color(0xFFFF4081),
               child: Text(
                 widget.patientName.substring(0, 2),
                 style: const TextStyle(color: Colors.white),
@@ -194,7 +194,7 @@ class _DoctorChatScreenState extends State<DoctorChatScreen> {
                 ),
                 const SizedBox(width: 8),
                 CircleAvatar(
-                  backgroundColor: const Color(0xFF5C6BC0),
+                  backgroundColor: const Color(0xFFFF4081),
                   child: IconButton(
                     icon: const Icon(Icons.send, color: Colors.white),
                     onPressed: _sendMessage,
@@ -217,7 +217,7 @@ class _DoctorChatScreenState extends State<DoctorChatScreen> {
           .doc(user!.uid)
           .get();
       final doctorData = doctorDoc.data() as Map<String, dynamic>;
-      final doctorName = doctorData['name'];
+      final doctorName = 'Dr. ${doctorData['name']}';
 
       await FirebaseFirestore.instance
           .collection('chats')

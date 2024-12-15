@@ -1,6 +1,9 @@
-import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:myapp/src/models/appointment.dart';
+import 'package:myapp/src/models/order.dart';
+
 
 class BookingConfirmationScreen extends StatelessWidget {
   final String bookingId;
@@ -10,180 +13,128 @@ class BookingConfirmationScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        title: const Text('Booking Confirmation'),
-        backgroundColor: const Color(0xFF87CF3A),
+        title: const Text(
+          'Booking Confirmation',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black87,
+        elevation: 0,
       ),
-      body: FutureBuilder<DocumentSnapshot>(
-        future: FirebaseFirestore.instance.collection('bookings').doc(bookingId).get(),
+      body: FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+        future: FirebaseFirestore.instance
+            .collection('appointments')
+            .doc(bookingId)
+            .get(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
-
           if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
           }
-
           if (!snapshot.hasData || !snapshot.data!.exists) {
             return const Center(child: Text('Booking not found'));
           }
 
-          final bookingData = snapshot.data!.data() as Map<String, dynamic>;
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildConfirmationHeader(),
-                const SizedBox(height: 24),
-                _buildAppointmentDetails(bookingData),
-                const SizedBox(height: 24),
-                _buildPatientDetails(bookingData),
-                const SizedBox(height: 24),
-                _buildPaymentDetails(bookingData),
-              ],
+          final bookingData = snapshot.data!.data()!;
+          final appointment = Appointment(
+            id: bookingData['id'],
+            userId: bookingData['userId'],
+            doctorId: bookingData['doctorId'],
+            firstName: bookingData['firstName'],
+            lastName: bookingData['lastName'],
+            email: bookingData['email'],
+            phone: bookingData['phone'],
+            address: Address(
+              street: bookingData['address']['street'],
+              city: bookingData['address']['city'],
+              state: bookingData['address']['state'],
+              postalCode: bookingData['address']['postalCode'],
             ),
+            age: bookingData['age'],
+            gender: bookingData['gender'],
+            bloodType: bookingData['bloodType'],
+            allergies: bookingData['allergies'],
+            medications: bookingData['medications'],
+            complaint: bookingData['complaint'],
+            comments: bookingData['comments'],
+            appointmentDate: (bookingData['appointmentDate'] as Timestamp).toDate(),
+            appointmentTime: bookingData['appointmentTime'],
+            paymentMethod: bookingData['paymentMethod'],
+            consultationFee: bookingData['consultationFee'],
+            status: bookingData['status'],
+            createdAt: (bookingData['createdAt'] as Timestamp).toDate(),
           );
+
+          return _buildConfirmationContent(appointment);
         },
       ),
     );
   }
 
-  Widget _buildConfirmationHeader() {
-    return Column(
-      children: [
-        const Icon(
-          Icons.check_circle,
-          color: Color(0xFF87CF3A),
-          size: 64,
-        ),
-        const SizedBox(height: 16),
-        const Text(
-          'Booking Confirmed!',
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
+  Widget _buildConfirmationContent(Appointment appointment) {
+    final currencyFormat =
+    NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Center(
+            child: Icon(
+              Icons.check_circle,
+              color: Colors.green,
+              size: 80,
+            ),
           ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'Booking ID: $bookingId',
-          style: const TextStyle(
-            fontSize: 16,
-            color: Colors.grey,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildAppointmentDetails(Map<String, dynamic> bookingData) {
-    final appointmentDate = (bookingData['appointmentDate'] as Timestamp).toDate();
-    final appointmentTime = bookingData['appointmentTime'] as String;
-
-    return _buildSection(
-      title: 'Appointment Details',
-      children: [
-        _buildDetailRow('Date', DateFormat('MMMM d, yyyy').format(appointmentDate)),
-        _buildDetailRow('Time', appointmentTime),
-        _buildDetailRow('Doctor', bookingData['doctorName'] ?? 'Not specified'),
-        _buildDetailRow('Status', bookingData['status'] ?? 'Pending'),
-      ],
-    );
-  }
-
-  Widget _buildPatientDetails(Map<String, dynamic> bookingData) {
-    return _buildSection(
-      title: 'Patient Details',
-      children: [
-        _buildDetailRow('Name', '${bookingData['firstName']} ${bookingData['lastName']}'),
-        _buildDetailRow('Email', bookingData['email']),
-        _buildDetailRow('Phone', bookingData['phone']),
-        _buildDetailRow('Gender', bookingData['gender']),
-        _buildDetailRow('Age', bookingData['age']?.toString() ?? 'Not specified'),
-        _buildDetailRow('Blood Type', bookingData['bloodType'] ?? 'Not specified'),
-        _buildDetailRow('Allergies', bookingData['allergies'] ?? 'None'),
-        _buildDetailRow('Medications', bookingData['medications'] ?? 'None'),
-      ],
-    );
-  }
-
-  Widget _buildPaymentDetails(Map<String, dynamic> bookingData) {
-    return _buildSection(
-      title: 'Payment Details',
-      children: [
-        _buildDetailRow('Payment Method', bookingData['paymentMethod']),
-        _buildDetailRow('Consultation Fee', '\$${bookingData['consultationFee']}'),
-        _buildDetailRow('Admin Fee', '\$44'),
-        _buildDetailRow('Coupon Discount', '-\$24'),
-        _buildDetailRow(
-          'Total Amount',
-          '\$${(bookingData['consultationFee'] + 44 - 24).toStringAsFixed(2)}',
-          isTotal: true,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSection({required String title, required List<Widget> children}) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 16),
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
+          const SizedBox(height: 16),
+          const Center(
+            child: Text(
+              'Booking Confirmed!',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
               ),
-            ],
+            ),
           ),
-          child: Column(
-            children: children,
-          ),
-        ),
-      ],
+          const SizedBox(height: 32),
+          _buildDetailRow('Appointment ID', appointment.id),
+          _buildDetailRow('Patient Name',
+              '${appointment.firstName} ${appointment.lastName}'),
+          _buildDetailRow('Doctor ID', appointment.doctorId), // Show doctor ID
+          _buildDetailRow(
+              'Appointment Date',
+              DateFormat('yyyy-MM-dd')
+                  .format(appointment.appointmentDate)),
+          _buildDetailRow('Appointment Time', appointment.appointmentTime),
+          _buildDetailRow('Consultation Fee',
+              currencyFormat.format(appointment.consultationFee)),
+          _buildDetailRow('Payment Method', appointment.paymentMethod),
+          // ... add more details as needed
+        ],
+      ),
     );
   }
 
-  Widget _buildDetailRow(String label, String value, {bool isTotal = false}) {
+  Widget _buildDetailRow(String label, String value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
-            label,
-            style: TextStyle(
-              fontSize: isTotal ? 16 : 14,
-              fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
-              color: isTotal ? Colors.black : Colors.grey[600],
-            ),
+            '$label:',
+            style: const TextStyle(fontWeight: FontWeight.bold),
           ),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: isTotal ? 16 : 14,
-              fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
-              color: isTotal ? Colors.black : Colors.grey[800],
-            ),
-          ),
+          Text(value),
         ],
       ),
     );
   }
 }
-

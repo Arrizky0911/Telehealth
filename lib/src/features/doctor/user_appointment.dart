@@ -59,7 +59,7 @@ class _UserAppointmentState extends State<UserAppointment> {
         bottom: 20,
       ),
       decoration: const BoxDecoration(
-        color: Color(0xFF5C6BC0),
+        color: Color(0xFFFF4081),
       ),
       child: Column(
         children: [
@@ -159,7 +159,7 @@ class _UserAppointmentState extends State<UserAppointment> {
             Text(
               DateFormat('EEE').format(date),
               style: TextStyle(
-                color: isSelected ? const Color(0xFF5C6BC0) : Colors.white,
+                color: isSelected ? const Color(0xFFFF4081) : Colors.white,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -167,7 +167,7 @@ class _UserAppointmentState extends State<UserAppointment> {
             Text(
               date.day.toString(),
               style: TextStyle(
-                color: isSelected ? const Color(0xFF5C6BC0) : Colors.white,
+                color: isSelected ? const Color(0xFFFF4081) : Colors.white,
                 fontWeight: FontWeight.bold,
                 fontSize: 18,
               ),
@@ -231,12 +231,12 @@ class _UserAppointmentState extends State<UserAppointment> {
                 Row(
                   children: [
                     CircleAvatar(
-                      backgroundColor: const Color(0xFF5C6BC0).withOpacity(0.1),
+                      backgroundColor: const Color(0xFFFF4081).withOpacity(0.1),
                       radius: 24,
                       child: Text(
                         'Dr',
                         style: TextStyle(
-                          color: const Color(0xFF5C6BC0),
+                          color: const Color(0xFFFF4081),
                           fontWeight: FontWeight.bold,
                         ),
                       ),

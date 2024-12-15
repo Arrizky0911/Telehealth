@@ -347,8 +347,8 @@ class _ImprovedTasksScreenState extends State<TasksScreen> {
                     icon: const Icon(Icons.calendar_today, size: 16),
                     label: const Text('Today'),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: const Color(0xFF5C6BC0),
-                      side: const BorderSide(color: Color(0xFF5C6BC0)),
+                      foregroundColor: const Color(0xFFFF4D4F),
+                      side: const BorderSide(color: Color(0xFFFF4D4F)),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20),
                       ),
@@ -389,7 +389,7 @@ class _ImprovedTasksScreenState extends State<TasksScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _showAddTaskDialog,
-        backgroundColor: const Color(0xFF5C6BC0),
+        backgroundColor: const Color(0xFFFF4D4F),
         child: const Icon(Icons.add),
       ),
     );
@@ -414,7 +414,7 @@ class _DateButton extends StatelessWidget {
       child: Container(
         width: 60,
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF7986CB) : Colors.transparent,
+          color: isSelected ? const Color(0xFFFF4D4F) : Colors.transparent,
           borderRadius: BorderRadius.circular(12),
         ),
         child: Column(
@@ -475,7 +475,7 @@ class _TaskCard extends StatelessWidget {
               value: task.completed,
               onChanged: (_) => onToggle(),
               shape: const CircleBorder(),
-              activeColor: const Color(0xFF5C6BC0),
+              activeColor: const Color(0xFFFF4D4F),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -504,7 +504,7 @@ class _TaskCard extends StatelessWidget {
                     LinearProgressIndicator(
                       value: task.progress! / task.total!,
                       backgroundColor: Colors.grey[300],
-                      valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF5C6BC0)),
+                      valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFFFF4D4F)),
                     ),
                     const SizedBox(height: 4),
                     Row(

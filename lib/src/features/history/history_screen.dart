@@ -90,7 +90,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
 }
 
 class OrderHistoryCard extends StatelessWidget {
-   final myOrder.Order order; // Use the Order class defined below
+  final myOrder.Order order; // Use the Order class defined below
   const OrderHistoryCard({super.key, required this.order});
 
   @override
@@ -107,7 +107,7 @@ class OrderHistoryCard extends StatelessWidget {
               'Order ID: ${order.orderId}',
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
-                        const SizedBox(height: 8),
+            const SizedBox(height: 8),
             const Text(
               'Items:',
               style: TextStyle(fontWeight: FontWeight.bold),

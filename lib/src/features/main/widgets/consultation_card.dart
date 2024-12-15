@@ -93,13 +93,13 @@ class VirtualConsultationsCard extends StatelessWidget {
                           Text(
                             'See All',
                             style: TextStyle(
-                              color: Color(0xFF5C6BC0),
+                              color: Color(0xFFFF4081),
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                           Icon(
                             Icons.chevron_right,
-                            color: Color(0xFF5C6BC0),
+                            color: Color(0xFFFF4081),
                           ),
                         ],
                       ),
@@ -144,14 +144,14 @@ class VirtualConsultationsCard extends StatelessWidget {
                   width: 56,
                   height: 56,
                   decoration: BoxDecoration(
-                    color: const Color(0xFF7986CB).withOpacity(0.1),
+                    color: const Color(0xFFFF4081).withOpacity(0.1),
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Center(
                     child: Text(
                       doctor.name.substring(0, 2).toUpperCase(),
                       style: const TextStyle(
-                        color: Color(0xFF7986CB),
+                        color: Color(0xFFFF4081),
                         fontSize: 20,
                         fontWeight: FontWeight.w600,
                       ),
@@ -181,7 +181,7 @@ class VirtualConsultationsCard extends StatelessWidget {
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF7986CB).withOpacity(0.1),
+                            color: const Color(0xFFFF4081).withOpacity(0.1),
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Row(
@@ -196,7 +196,7 @@ class VirtualConsultationsCard extends StatelessWidget {
                               Text(
                                 doctor.rating.toString(),
                                 style: const TextStyle(
-                                  color: Color(0xFF7986CB),
+                                  color: Color(0xFFFF4081),
                                   fontWeight: FontWeight.w600,
                                   fontSize: 13,
                                 ),

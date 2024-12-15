@@ -45,15 +45,11 @@ class _DoctorListScreenState extends State<DoctorListScreen> {
                 child: Container(
                   color: Colors.white,
                   child: Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Flexible(
-                            child: SearchBarCustom(
-                                controller: _searchController,
-                                onChanged: _onSearchChanged)),
+                        Flexible(child: SearchBarCustom(controller: _searchController, onChanged: _onSearchChanged)),
                         const SizedBox(height: 8),
                         Flexible(child: _buildFilterChips()),
                       ],
@@ -72,56 +68,54 @@ class _DoctorListScreenState extends State<DoctorListScreen> {
   Widget _buildAppBar() {
     return SliverAppBar(
       automaticallyImplyLeading: false,
-      title: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8.0),
-        child: Column(
-          children: [
-            widget.showAppBarArrow
-                ? Row(children: [
-                    IconButton(
-                      icon: const Icon(Icons.arrow_back),
-                      onPressed: () => Navigator.of(context).pop(),
-                    ),
-                    const Text('Consultation & Appointment')
-                  ])
-                : const Text('Consultation & Appointment'),
-            const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                TextButton.icon(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const UserConsultation()),
-                    );
-                  },
-                  icon: const Icon(Icons.chat_bubble_outline, size: 20),
-                  label: const Text('My Consultation'),
-                  style: TextButton.styleFrom(
-                    foregroundColor: Colors.black87,
-                  ),
+      title: Column(
+        children: [
+          widget.showAppBarArrow? Row(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.arrow_back, color: Colors.black),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+              ),
+              const Text('Consultation & Appointment')
+            ],
+          ) :
+          const Text('Consultation & Appointment'),
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              TextButton.icon(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => UserConsultation()),
+                  );
+                },
+                icon: const Icon(Icons.chat_bubble_outline, size: 20),
+                label: const Text('My Consultation'),
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.black87,
                 ),
-                const SizedBox(width: 16),
-                TextButton.icon(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const UserAppointment()),
-                    );
-                  },
-                  icon: const Icon(Icons.calendar_today, size: 20),
-                  label: const Text('My Appointment'),
-                  style: TextButton.styleFrom(
-                    foregroundColor: Colors.black87,
-                  ),
+              ),
+              const SizedBox(width: 16),
+              TextButton.icon(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const UserAppointment()),
+                  );
+                },
+                icon: const Icon(Icons.calendar_today, size: 20),
+                label: const Text('My Appointment'),
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.black87,
                 ),
-              ],
-            ),
-          ],
-        ),
+              ),
+            ],
+          ),
+        ],
       ),
       centerTitle: true,
       pinned: true,
@@ -165,7 +159,7 @@ class _DoctorListScreenState extends State<DoctorListScreen> {
             selectedSpecialty = label;
           });
         },
-        selectedColor: const Color(0xFF5C6BC0),
+        selectedColor: const Color(0xFFFF4081),
         backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
@@ -202,10 +196,8 @@ class _DoctorListScreenState extends State<DoctorListScreen> {
           final specialty = doctor.specialty.toLowerCase();
           final query = _searchController.text.toLowerCase();
 
-          final matchesSearch =
-              name.contains(query) || specialty.contains(query);
-          final matchesFilter = selectedSpecialty == 'All' ||
-              doctor.specialty == selectedSpecialty;
+          final matchesSearch = name.contains(query) || specialty.contains(query);
+          final matchesFilter = selectedSpecialty == 'All' || doctor.specialty == selectedSpecialty;
 
           return matchesSearch && matchesFilter;
         }).toList();
@@ -214,7 +206,7 @@ class _DoctorListScreenState extends State<DoctorListScreen> {
           padding: const EdgeInsets.all(16),
           sliver: SliverList(
             delegate: SliverChildBuilderDelegate(
-              (context, index) {
+                  (context, index) {
                 if (index == 0) {
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 16),
@@ -228,10 +220,7 @@ class _DoctorListScreenState extends State<DoctorListScreen> {
                   );
                 }
                 final doctor = filtered[index - 1];
-                return DoctorCard(
-                  doctor: doctor,
-                  isCheckout: false,
-                );
+                return DoctorCard(doctor: doctor, isCheckout: false,);
               },
               childCount: filtered.length + 1,
             ),
@@ -246,8 +235,9 @@ class _DoctorListScreenState extends State<DoctorListScreen> {
         .collection('doctors')
         .where('isActive', isEqualTo: true)
         .snapshots()
-        .map((snapshot) =>
-            snapshot.docs.map((doc) => Doctor.fromMap(doc.data())).toList());
+        .map((snapshot) => snapshot.docs
+        .map((doc) => Doctor.fromMap(doc.data()))
+        .toList());
   }
 }
 
@@ -269,8 +259,7 @@ class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
   double get maxExtent => maxHeight;
 
   @override
-  Widget build(
-      BuildContext context, double shrinkOffset, bool overlapsContent) {
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
     return SizedBox.expand(child: child);
   }
 
@@ -281,3 +270,4 @@ class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
         child != oldDelegate.child;
   }
 }
+

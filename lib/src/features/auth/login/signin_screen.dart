@@ -182,7 +182,7 @@ class _LoginScreenState extends State<SignInScreen> {
                   child: const Text(
                     'Forgot Password?',
                     style: TextStyle(
-                      color: Color(0xFF4B5BA6),
+                      color: Color(0xFFFF4D4F),
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -202,7 +202,7 @@ class _LoginScreenState extends State<SignInScreen> {
                   child: const Text(
                     'Create an Account',
                     style: TextStyle(
-                      color: Color(0xFF4B5BA6),
+                      color: Color(0xFFFF4D4F),
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -221,7 +221,7 @@ class _LoginScreenState extends State<SignInScreen> {
                       : RoundButton(
                           label: 'Sign In',
                           onPressed: _login,
-                          color: const Color(0xFF4B5BA6),
+                          color: const Color(0xFFFF4D4F),
                         ),
                 )),
 

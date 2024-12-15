@@ -50,7 +50,7 @@ class AuthMethodLayout extends StatelessWidget {
           child: RoundButton(
             label: auth == "Sign In" ? "Sign In with Email" : "Sign Up with Email", 
             onPressed: handleEmailAuth,
-            color: const Color(0xFF4B5BA6))
+            color: const Color(0xFFFF4D4F))
         ),
         const SizedBox(height: 10),
         SizedBox(

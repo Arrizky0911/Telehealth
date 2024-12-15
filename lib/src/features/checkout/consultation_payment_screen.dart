@@ -186,7 +186,7 @@ class _ConsultationPaymentScreenState extends State<ConsultationPaymentScreen> {
       child: ElevatedButton(
         onPressed: () => _handlePayment(context),
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF5C6BC0),
+          backgroundColor: const Color(0xFFFF4081),
           padding: const EdgeInsets.symmetric(vertical: 16),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -208,10 +208,19 @@ class _ConsultationPaymentScreenState extends State<ConsultationPaymentScreen> {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) return;
 
-      final timestamp = DateTime.now().microsecondsSinceEpoch;
-      final chatRoomId = '${user.uid}_${widget.doctor.uid}_$timestamp';
+      // Get user data first
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
 
-      // Buat chat room baru
+      final userData = userDoc.data();
+      final patientName = userData?['fullName'] ?? 'Unknown';
+
+      final timestamp = DateTime.now().microsecondsSinceEpoch;
+      final chatRoomId = '${user.uid}${widget.doctor.uid}$timestamp';
+
+      // Create new chat room
       await FirebaseFirestore.instance
           .collection('chats')
           .doc(chatRoomId)
@@ -220,7 +229,7 @@ class _ConsultationPaymentScreenState extends State<ConsultationPaymentScreen> {
         'doctorName': widget.doctor.name,
         'specialty': widget.doctor.specialty,
         'patientId': user.uid,
-        'patientName': user.displayName,
+        'patientName': patientName,
         'chatRoomId': chatRoomId,
         'startedAt': FieldValue.serverTimestamp(),
         'status': 'active',
@@ -228,7 +237,7 @@ class _ConsultationPaymentScreenState extends State<ConsultationPaymentScreen> {
         'lastMessageTime': FieldValue.serverTimestamp(),
       });
 
-      // Tambah ke history konsultasi
+      // Add to history
       await FirebaseFirestore.instance
           .collection('consultations')
           .doc(user.uid)
@@ -238,7 +247,7 @@ class _ConsultationPaymentScreenState extends State<ConsultationPaymentScreen> {
         'doctorName': widget.doctor.name,
         'specialty': widget.doctor.specialty,
         'patientId': user.uid,
-        'patientName': user.displayName,
+        'patientName': patientName,
         'chatRoomId': chatRoomId,
         'startedAt': FieldValue.serverTimestamp(),
         'status': 'active',
@@ -246,13 +255,14 @@ class _ConsultationPaymentScreenState extends State<ConsultationPaymentScreen> {
         'lastMessageTime': FieldValue.serverTimestamp(),
       });
 
-      // Init chat dengan pesan sistem
+      // Init chat
       await FirebaseFirestore.instance
           .collection('chats')
           .doc(chatRoomId)
           .collection('messages')
           .add({
         'senderId': 'system',
+        'senderName': 'System',
         'message': 'Chat consultation started',
         'timestamp': FieldValue.serverTimestamp(),
         'type': 'system'
@@ -278,4 +288,3 @@ class _ConsultationPaymentScreenState extends State<ConsultationPaymentScreen> {
     }
   }
 }
-

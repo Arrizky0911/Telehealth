@@ -23,192 +23,35 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  String? _patientName;
-  bool _isNewChat = false;
+  String _patientName = '';
 
   @override
   void initState() {
     super.initState();
-    _isNewChat = widget.chatRoomId.isEmpty;
-    _loadPatientName().then((_) {
-      if (_isNewChat) {
-        _createNewChat();
-      }
+    _loadPatientName();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollToBottom();
     });
   }
 
   Future<void> _loadPatientName() async {
     try {
       final user = FirebaseAuth.instance.currentUser;
-      if (user == null) throw Exception('User not logged in');
+      if (user == null) return;
 
       final userDoc = await FirebaseFirestore.instance
           .collection('users')
           .doc(user.uid)
           .get();
 
-      setState(() {
-        _patientName = userDoc.data()?['name'] as String?;
-      });
+      if (mounted) {
+        setState(() {
+          _patientName = userDoc.data()?['fullName'] ?? 'Unknown';
+        });
+      }
     } catch (e) {
       debugPrint('Error loading patient name: $e');
     }
-  }
-
-  Future<void> _createNewChat() async {
-    try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user == null) return;
-
-      final timestamp = DateTime.now().microsecondsSinceEpoch;
-      final newChatRoomId = '${user.uid}_${widget.doctorId}_$timestamp';
-
-      // Create new chat document first
-      await FirebaseFirestore.instance
-          .collection('chats')
-          .doc(newChatRoomId)
-          .set({
-        'doctorId': widget.doctorId,
-        'doctorName': widget.doctorName,
-        'specialty': widget.specialty,
-        'patientId': user.uid,
-        'patientName': _patientName,
-        'chatRoomId': newChatRoomId,
-        'startedAt': FieldValue.serverTimestamp(),
-        'status': 'active',
-        'lastMessage': '',
-        'lastMessageTime': FieldValue.serverTimestamp(),
-      });
-
-      // it's for creating consultation history
-      await FirebaseFirestore.instance
-          .collection('consultations')
-          .doc(user.uid)
-          .collection('history')
-          .add({
-        'doctorId': widget.doctorId,
-        'doctorName': widget.doctorName,
-        'specialty': widget.specialty,
-        'patientId': user.uid,
-        'patientName': _patientName,
-        'chatRoomId': newChatRoomId,
-        'startedAt': FieldValue.serverTimestamp(),
-        'status': 'active',
-        'lastMessage': '',
-        'lastMessageTime': FieldValue.serverTimestamp(),
-      });
-
-      // Update widget chatRoomId
-      setState(() {
-        widget.chatRoomId = newChatRoomId;
-      });
-
-      // Init chat, bcz previously too much error with some reason, then we do this
-      await FirebaseFirestore.instance
-          .collection('chats')
-          .doc(newChatRoomId)
-          .collection('messages')
-          .add({
-        'senderId': 'system',
-        'message': 'Chat consultation started',
-        'timestamp': FieldValue.serverTimestamp(),
-        'type': 'system'
-      });
-
-    } catch (e) {
-      debugPrint('Error creating new chat: $e');
-    }
-  }
-
-  Future<void> _sendMessage() async {
-    if (_messageController.text.trim().isEmpty) return;
-
-    try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user == null) return;
-
-      final message = _messageController.text.trim();
-      _messageController.clear();
-
-      await FirebaseFirestore.instance
-          .collection('chats')
-          .doc(widget.chatRoomId)
-          .collection('messages')
-          .add({
-        'message': message,
-        'senderId': user.uid,
-        'senderName': _patientName ?? 'Unknown',
-        'timestamp': FieldValue.serverTimestamp(),
-      });
-
-      // Update last message
-      await FirebaseFirestore.instance
-          .collection('chats')
-          .doc(widget.chatRoomId)
-          .update({
-        'lastMessage': message,
-        'lastMessageTime': FieldValue.serverTimestamp(),
-      });
-
-      _scrollToBottom();
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error sending message: $e')),
-      );
-    }
-  }
-
-  Widget _buildMessage(Map<String, dynamic> message, bool isMe) {
-    return Align(
-      alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
-      child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 4),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: isMe ? const Color(0xFF5C6BC0) : Colors.grey[200],
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Text(
-          message['message'] as String,
-          style: TextStyle(
-            color: isMe ? Colors.white : Colors.black87,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMessageInput() {
-    return Container(
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 3,
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: TextField(
-              controller: _messageController,
-              decoration: const InputDecoration(
-                hintText: 'Type a message...',
-                border: InputBorder.none,
-              ),
-            ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.send),
-            onPressed: _sendMessage,
-          ),
-        ],
-      ),
-    );
   }
 
   void _scrollToBottom() {
@@ -314,5 +157,117 @@ class _ChatScreenState extends State<ChatScreen> {
         },
       ),
     );
+  }
+
+  Widget _buildMessage(Map<String, dynamic> message, bool isMe) {
+    return Align(
+      alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 4),
+        child: Column(
+          crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+          children: [
+            Text(
+              message['senderName'] ?? 'Unknown',
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey[600],
+              ),
+            ),
+            Container(
+              margin: const EdgeInsets.only(top: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: isMe ? const Color(0xFFFF4081) : Colors.grey[200],
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                message['message'] as String,
+                style: TextStyle(
+                  color: isMe ? Colors.white : Colors.black87,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMessageInput() {
+    return Container(
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 1,
+            blurRadius: 3,
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: TextField(
+              controller: _messageController,
+              decoration: const InputDecoration(
+                hintText: 'Type a message...',
+                border: InputBorder.none,
+              ),
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.send),
+            onPressed: _sendMessage,
+          ),
+        ],
+      ),
+    );
+  }
+  Future<void> _sendMessage() async {
+    if (_messageController.text.trim().isEmpty) return;
+
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) return;
+
+      // Ambil data chat room untuk dapat nama pasien
+      final chatDoc = await FirebaseFirestore.instance
+          .collection('chats')
+          .doc(widget.chatRoomId)
+          .get();
+
+      final chatData = chatDoc.data();
+      final patientName = chatData?['patientName'] ?? 'Unknown';
+
+      await FirebaseFirestore.instance
+          .collection('chats')
+          .doc(widget.chatRoomId)
+          .collection('messages')
+          .add({
+        'message': _messageController.text.trim(),
+        'senderId': user.uid,
+        'senderName': patientName,
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+
+      // Update last message
+      await FirebaseFirestore.instance
+          .collection('chats')
+          .doc(widget.chatRoomId)
+          .update({
+        'lastMessage': _messageController.text.trim(),
+        'lastMessageTime': FieldValue.serverTimestamp(),
+      });
+
+      _messageController.clear();
+      _scrollToBottom();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error sending message: $e')),
+      );
+    }
   }
 }

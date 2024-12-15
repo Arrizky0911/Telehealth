@@ -78,7 +78,7 @@ class DoctorCard extends StatelessWidget {
     return Container(
       width: 80,
       height: 80,
-      color: const Color(0xFF7986CB),
+      color: const Color(0xFFFF4081),
       child: Center(
         child: Text(
           doctor.name.substring(0, 2).toUpperCase(),
